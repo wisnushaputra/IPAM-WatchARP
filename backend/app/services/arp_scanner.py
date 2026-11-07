@@ -175,14 +175,15 @@ def _send_arp_packets(cidr: str):
 
 def perform_arp_scan(
     cidr: str,
-    mode: str = "mock",
+    mode: Optional[str] = None,
     sample_gateway: Optional[str] = None,
 ) -> list[dict[str, Optional[str]]]:
     """Perform an ARP scan across a /24 IPv4 subnet.
 
     Parameters:
     - cidr: IPv4 subnet in CIDR notation (must be a valid /24).
-    - mode: "mock" (default, deterministic simulation) or "live" (Scapy packet sweep).
+    - mode: "mock" (deterministic simulation) or "live" (Scapy packet sweep).
+      Defaults to SCAN_MODE env var or "mock".
     - sample_gateway: Optional gateway IP to ensure inclusion in scan results.
 
     Returns:
@@ -190,25 +191,32 @@ def perform_arp_scan(
     """
     validate_v4_subnet_24(cidr)
     network = ipaddress.IPv4Network(cidr.strip(), strict=False)
+    effective_mode = (mode or os.getenv("SCAN_MODE", "mock")).strip().lower()
 
-    if mode == "mock":
+    if effective_mode == "mock":
         return _mock_arp_scan(network, sample_gateway)
 
-    if mode == "live":
+    if effective_mode == "live":
         try:
             from scapy.layers.l2 import ARP, Ether
             ans = _send_arp_packets(cidr)
             results: list[dict[str, Optional[str]]] = []
             for _sent, received in ans:
-                recv_ip = str(received[ARP].psrc)
-                raw_mac = str(received[Ether].src)
-                detected_mac = normalize_mac(raw_mac)
-                vendor = lookup_vendor(detected_mac) if detected_mac else None
-                results.append({
-                    "ip_address": recv_ip,
-                    "detected_mac": detected_mac,
-                    "vendor": vendor,
-                })
+                try:
+                    recv_ip = str(received[ARP].psrc)
+                    raw_mac = str(received[Ether].src)
+                    detected_mac = normalize_mac(raw_mac)
+                    if not detected_mac:
+                        continue
+                    vendor = lookup_vendor(detected_mac)
+                    results.append({
+                        "ip_address": recv_ip,
+                        "detected_mac": detected_mac,
+                        "vendor": vendor,
+                    })
+                except Exception as packet_err:
+                    logger.debug("Skipping invalid packet in live ARP scan: %s", packet_err)
+                    continue
             return results
         except Exception as exc:
             logger.warning(
@@ -219,4 +227,4 @@ def perform_arp_scan(
             )
             return _mock_arp_scan(network, sample_gateway)
 
-    raise ValueError(f"Invalid scan mode: '{mode}'. Must be 'mock' or 'live'")
+    raise ValueError(f"Invalid scan mode: '{effective_mode}'. Must be 'mock' or 'live'")
