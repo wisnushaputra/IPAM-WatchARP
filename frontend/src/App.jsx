@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header.jsx';
 import AddSubnetModal from './components/AddSubnetModal.jsx';
+import StatCards from './components/StatCards.jsx';
+import IpGridMap from './components/IpGridMap.jsx';
 import api from './services/api.js';
 import {
   Network,
   Plus,
-  Server,
-  Activity,
   AlertTriangle,
-  ShieldAlert,
-  ShieldCheck,
   CheckCircle2,
   Clock,
   X,
@@ -19,7 +17,10 @@ import {
 export default function App() {
   const [subnets, setSubnets] = useState([]);
   const [selectedSubnet, setSelectedSubnet] = useState(null);
+  const [ips, setIps] = useState([]);
+  const [selectedIp, setSelectedIp] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isIpsLoading, setIsIpsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isAddSubnetModalOpen, setIsAddSubnetModalOpen] = useState(false);
   const [scanNotification, setScanNotification] = useState(null);
@@ -57,18 +58,51 @@ export default function App() {
     }
   }, []);
 
+  const loadSubnetIps = useCallback(async (subnetId) => {
+    if (!subnetId) {
+      setIps([]);
+      setSelectedIp(null);
+      return;
+    }
+    try {
+      setIsIpsLoading(true);
+      const data = await api.getSubnetIps(subnetId);
+      const list = Array.isArray(data) ? data : [];
+      setIps(list);
+      setSelectedIp((prev) => {
+        if (!prev) return null;
+        return list.find((item) => item.id === prev.id) || null;
+      });
+    } catch (err) {
+      console.error('Failed to load subnet IPs:', err);
+    } finally {
+      setIsIpsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadSubnets();
   }, [loadSubnets]);
 
+  useEffect(() => {
+    if (selectedSubnet?.id) {
+      loadSubnetIps(selectedSubnet.id);
+    } else {
+      setIps([]);
+      setSelectedIp(null);
+    }
+  }, [selectedSubnet?.id, loadSubnetIps]);
+
   const handleSelectSubnet = (subnet) => {
     setSelectedSubnet(subnet);
+    setSelectedIp(null);
     setScanNotification(null);
   };
 
   const handleSubnetCreated = (newSubnet) => {
     setSubnets((prev) => [...prev, newSubnet]);
     setSelectedSubnet(newSubnet);
+    setSelectedIp(null);
     setScanNotification({
       type: 'success',
       message: `Subnet "${newSubnet.name}" (${newSubnet.cidr}) berhasil dibuat.`,
@@ -93,6 +127,8 @@ export default function App() {
 
       // Refetch subnets to update summary metrics (online_count, rogue_count, last_scanned_at)
       await loadSubnets(selectedSubnet.id);
+      // Refetch IP addresses to update cell colors
+      await loadSubnetIps(selectedSubnet.id);
     } catch (err) {
       console.error('Scan failed:', err);
       setScanNotification({
@@ -192,10 +228,11 @@ export default function App() {
             </div>
           </div>
         ) : selectedSubnet ? (
-          /* Subnet Overview Panel */
+          /* Subnet Detail View */
           <div className="space-y-6">
+            {/* Subnet Metadata Card */}
             <div className="bg-slate-850 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-white tracking-tight">
@@ -208,11 +245,18 @@ export default function App() {
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
-                    <span>CIDR: <strong className="text-slate-200">{selectedSubnet.cidr}</strong></span>
+                    <span>
+                      CIDR: <strong className="text-slate-200">{selectedSubnet.cidr}</strong>
+                    </span>
                     {selectedSubnet.gateway && (
-                      <span>Gateway: <strong className="text-slate-200">{selectedSubnet.gateway}</strong></span>
+                      <span>
+                        Gateway: <strong className="text-slate-200">{selectedSubnet.gateway}</strong>
+                      </span>
                     )}
-                    <span>Total Hosts: <strong className="text-slate-200">{selectedSubnet.total_ips || 254}</strong></span>
+                    <span>
+                      Total Hosts:{' '}
+                      <strong className="text-slate-200">{selectedSubnet.total_ips || 254}</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -228,62 +272,22 @@ export default function App() {
                   </span>
                 </div>
               </div>
-
-              {/* Preliminary Metric Summary Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5">
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-                  <div className="flex items-center justify-between text-slate-400 text-xs">
-                    <span>Assigned IPs</span>
-                    <Server className="w-4 h-4 text-slate-500" />
-                  </div>
-                  <div className="mt-1 text-xl font-bold text-slate-100 font-mono">
-                    {selectedSubnet.assigned_count ?? 0}
-                    <span className="text-xs font-normal text-slate-500 ml-1">/ 254</span>
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-                  <div className="flex items-center justify-between text-slate-400 text-xs">
-                    <span>Host Online</span>
-                    <Activity className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="mt-1 text-xl font-bold text-emerald-400 font-mono">
-                    {selectedSubnet.online_count ?? 0}
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-                  <div className="flex items-center justify-between text-slate-400 text-xs">
-                    <span>Rogue Devices</span>
-                    <ShieldAlert className="w-4 h-4 text-rose-400" />
-                  </div>
-                  <div className="mt-1 text-xl font-bold text-rose-400 font-mono">
-                    {selectedSubnet.rogue_count ?? 0}
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-                  <div className="flex items-center justify-between text-slate-400 text-xs">
-                    <span>MAC Mismatch</span>
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div className="mt-1 text-xl font-bold text-amber-400 font-mono">
-                    {selectedSubnet.mismatch_count ?? 0}
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Placeholder container for Task 8, 9, 10 */}
-            <div className="p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/50 text-center text-sm text-slate-400">
-              <ShieldCheck className="w-6 h-6 text-indigo-400 mx-auto mb-2" />
-              <p className="font-medium text-slate-300">
-                Subnet View Siap
-              </p>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                Detail Subnet (Task 8), Grid 254 IP Address interaktif (Task 9), dan Modal Rekonsiliasi (Task 10) akan ditampilkan di sini.
-              </p>
-            </div>
+            {/* 4 Top Metric Cards */}
+            <StatCards
+              summary={selectedSubnet}
+              totalIps={selectedSubnet.total_ips || 254}
+              ips={ips}
+            />
+
+            {/* 254 IP Visual Grid Map */}
+            <IpGridMap
+              ips={ips}
+              selectedIp={selectedIp}
+              onSelectIp={setSelectedIp}
+              isLoading={isIpsLoading}
+            />
           </div>
         ) : null}
       </main>
