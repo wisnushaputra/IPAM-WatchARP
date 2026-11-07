@@ -6,15 +6,7 @@ import IpGridMap from './components/IpGridMap.jsx';
 import IpTable from './components/IpTable.jsx';
 import EditIpModal from './components/EditIpModal.jsx';
 import api from './services/api.js';
-import {
-  Network,
-  Plus,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  X,
-  Loader2,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, X, Loader2 } from 'lucide-react';
 
 export default function App() {
   const [subnets, setSubnets] = useState([]);
@@ -152,7 +144,6 @@ export default function App() {
 
       // Refetch subnets to update summary metrics (online_count, rogue_count, last_scanned_at)
       await loadSubnets(selectedSubnet.id);
-      // Refetch IP addresses to update cell colors
       await loadSubnetIps(selectedSubnet.id);
     } catch (err) {
       console.error('Scan failed:', err);
@@ -175,21 +166,15 @@ export default function App() {
     try {
       setIsTrustingId(ipId);
       const updatedIp = await api.trustMac(ipId);
-
-      // Update local ips list
       setIps((prev) => prev.map((item) => (item.id === updatedIp.id ? updatedIp : item)));
-
-      // Update selected IP if it was the trusted one
       setSelectedIp((prev) => (prev && prev.id === updatedIp.id ? updatedIp : prev));
-
-      // Refresh subnet summary metrics in background
       if (selectedSubnet?.id) {
         await loadSubnets(selectedSubnet.id);
       }
 
       setScanNotification({
         type: 'success',
-        message: `MAC address untuk IP ${updatedIp.ip_address} berhasil disetujui (Status: Assigned).`,
+        message: `MAC address untuk IP ${updatedIp.ip_address} berhasil disetujui (sekarang Assigned).`,
       });
     } catch (err) {
       console.error('Failed to trust MAC:', err);
@@ -203,13 +188,8 @@ export default function App() {
   };
 
   const handleIpSaved = async (updatedIp) => {
-    // Update local ips list
     setIps((prev) => prev.map((item) => (item.id === updatedIp.id ? updatedIp : item)));
-
-    // Update selected IP if it was the edited one
     setSelectedIp((prev) => (prev && prev.id === updatedIp.id ? updatedIp : prev));
-
-    // Refresh subnet summary metrics in background
     if (selectedSubnet?.id) {
       await loadSubnets(selectedSubnet.id);
     }
@@ -221,7 +201,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0e14] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen flex flex-col">
       <Header
         subnets={subnets}
         selectedSubnet={selectedSubnet}
@@ -232,124 +212,96 @@ export default function App() {
         isScanning={isScanning}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
         {scanNotification && (
           <div
-            className={`p-4 rounded-lg border flex items-start justify-between gap-3 transition-all ${
-              scanNotification.type === 'error'
-                ? 'bg-rose-950/60 border-rose-800 text-rose-200'
-                : 'bg-emerald-950/60 border-emerald-800 text-emerald-200'
+            className={`p-3 pl-4 rounded border flex items-center justify-between gap-3 text-sm text-ink ${
+              scanNotification.type === 'error' ? 'bg-bad/10 border-bad' : 'bg-ok/10 border-ok'
             }`}
-            role="status"
+            role={scanNotification.type === 'error' ? 'alert' : 'status'}
           >
             <div className="flex items-center gap-2.5">
               {scanNotification.type === 'error' ? (
-                <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-bad flex-shrink-0" aria-hidden="true" />
               ) : (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-ok flex-shrink-0" aria-hidden="true" />
               )}
-              <span className="text-sm font-medium">{scanNotification.message}</span>
+              <span>{scanNotification.message}</span>
             </div>
             <button
               type="button"
               onClick={() => setScanNotification(null)}
               aria-label="Tutup notifikasi"
-              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800/50 transition-colors"
+              className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded text-muted hover:text-ink hover:bg-sunken"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         )}
 
         {isLoading && subnets.length === 0 ? (
-          <div className="p-12 text-center border border-[#202739] bg-[#121622] rounded-lg">
-            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-300 font-mono">Memuat data subnet...</p>
+          <div className="py-16 text-center" role="status">
+            <Loader2 className="w-6 h-6 text-muted animate-spin mx-auto mb-3" aria-hidden="true" />
+            <p className="text-sm text-muted">Memuat data subnet...</p>
           </div>
         ) : error ? (
-          <div className="p-8 text-center border border-rose-900/60 bg-[#1e0e13] rounded-lg space-y-3">
-            <AlertTriangle className="w-8 h-8 text-rose-400 mx-auto" />
-            <h2 className="text-base font-semibold text-rose-200">Gagal Memuat Subnet</h2>
-            <p className="text-sm text-rose-300 max-w-md mx-auto">{error}</p>
-            <button
-              type="button"
-              onClick={() => loadSubnets()}
-              className="mt-2 px-4 py-2 bg-[#182133] hover:bg-[#202b40] text-slate-200 text-xs font-mono rounded-md border border-[#2a3750] transition-colors"
-            >
-              Coba Lagi
+          <div className="max-w-lg mx-auto my-10 p-6 border border-bad bg-surface rounded space-y-3" role="alert">
+            <h2 className="text-lg font-semibold text-bad">Gagal memuat subnet</h2>
+            <p className="text-sm text-ink">{error}</p>
+            <button type="button" onClick={() => loadSubnets()} className="btn-secondary">
+              Coba lagi
             </button>
           </div>
         ) : subnets.length === 0 ? (
-          <div className="p-10 text-center border border-[#202739] bg-[#121622] rounded-lg max-w-xl mx-auto my-8 space-y-4">
-            <Network className="w-10 h-10 text-cyan-400 mx-auto" />
-            <div>
-              <h2 className="text-lg font-semibold text-white">Belum Ada Subnet Terdaftar</h2>
-              <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
-                WatchARP siap mengelola IP address dan mendeteksi host jaringan melalui ARP scanning.
-                Tambahkan subnet IPv4 /24 pertama Anda untuk memulai.
-              </p>
-            </div>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setIsAddSubnetModalOpen(true)}
-                className="px-4 py-2 min-h-[38px] bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold rounded-md transition-colors inline-flex items-center gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-500"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Tambah Subnet Pertama</span>
-              </button>
-            </div>
+          <div className="max-w-lg mx-auto my-10 space-y-4">
+            <h2 className="text-xl font-semibold text-ink ledger-rule pb-2">Belum ada subnet</h2>
+            <p className="text-sm text-muted leading-relaxed">
+              Tambahkan subnet IPv4 /24 untuk mulai mencatat alokasi IP. Setelah itu jalankan scan ARP untuk
+              melihat host mana yang benar-benar aktif.
+            </p>
+            <button type="button" onClick={() => setIsAddSubnetModalOpen(true)} className="btn-primary">
+              Tambah Subnet Pertama
+            </button>
           </div>
         ) : selectedSubnet ? (
-          <div className="space-y-6">
-            <div className="bg-[#121622] border border-[#202739] rounded-lg p-5 sm:p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-white tracking-tight">
-                      {selectedSubnet.name}
-                    </h2>
-                    {selectedSubnet.vlan_id && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-[#182133] text-cyan-300 border border-[#283955] font-mono">
-                        VLAN {selectedSubnet.vlan_id}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
-                    <span>
-                      CIDR: <strong className="text-slate-200">{selectedSubnet.cidr}</strong>
-                    </span>
+          <>
+            <section aria-labelledby="subnet-title" className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
+                <div>
+                  <h2 id="subnet-title" className="text-2xl font-bold tracking-tight text-ink">
+                    {selectedSubnet.name}
+                  </h2>
+                  <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                    <div>
+                      <dt className="inline text-muted">CIDR </dt>
+                      <dd className="inline font-mono text-ink">{selectedSubnet.cidr}</dd>
+                    </div>
                     {selectedSubnet.gateway && (
-                      <span>
-                        Gateway: <strong className="text-slate-200">{selectedSubnet.gateway}</strong>
-                      </span>
+                      <div>
+                        <dt className="inline text-muted">Gateway </dt>
+                        <dd className="inline font-mono text-ink">{selectedSubnet.gateway}</dd>
+                      </div>
                     )}
-                    <span>
-                      Total Hosts:{' '}
-                      <strong className="text-slate-200">{selectedSubnet.total_ips || 254}</strong>
-                    </span>
-                  </div>
+                    {selectedSubnet.vlan_id && (
+                      <div>
+                        <dt className="inline text-muted">VLAN </dt>
+                        <dd className="inline font-mono text-ink">{selectedSubnet.vlan_id}</dd>
+                      </div>
+                    )}
+                  </dl>
                 </div>
-
-                <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                  <Clock className="w-4 h-4 text-slate-500" />
-                  <span>
-                    Terakhir di-scan:{' '}
-                    <span className="text-slate-300 font-medium">
-                      {selectedSubnet.last_scanned_at
-                        ? new Date(selectedSubnet.last_scanned_at).toLocaleString()
-                        : 'Belum pernah di-scan'}
-                    </span>
+                <p className="text-sm text-muted">
+                  Scan terakhir:{' '}
+                  <span className="text-ink">
+                    {selectedSubnet.last_scanned_at
+                      ? new Date(selectedSubnet.last_scanned_at).toLocaleString('id-ID')
+                      : 'belum pernah'}
                   </span>
-                </div>
+                </p>
               </div>
-            </div>
 
-            <StatCards
-              summary={selectedSubnet}
-              totalIps={selectedSubnet.total_ips || 254}
-              ips={ips}
-            />
+              <StatCards summary={selectedSubnet} totalIps={selectedSubnet.total_ips || 254} ips={ips} />
+            </section>
 
             <IpGridMap
               ips={ips}
@@ -367,7 +319,7 @@ export default function App() {
               onTrustMac={handleTrustMac}
               isTrustingId={isTrustingId}
             />
-          </div>
+          </>
         ) : null}
       </main>
 

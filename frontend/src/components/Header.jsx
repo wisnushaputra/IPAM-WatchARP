@@ -1,19 +1,40 @@
-import React from 'react';
-import { Network, Plus, RefreshCw, Radio, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCw, Trash2, Sun, Moon } from 'lucide-react';
 
-/**
- * Top application header containing branding, subnet selector dropdown,
- * "+ Tambah Subnet" action, and "Scan Subnet Sekarang" trigger.
- * 
- * Props:
- * - subnets: Array<object>
- * - selectedSubnet: object | null
- * - onSelectSubnet: (subnet: object) => void
- * - onOpenAddSubnet: () => void
- * - onDeleteSubnet: (subnetId: number) => void
- * - onScan: () => void
- * - isScanning: boolean
- */
+function currentTheme() {
+  if (typeof document === 'undefined') return 'light';
+  const set = document.documentElement.dataset.theme;
+  if (set) return set;
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function ThemeToggle() {
+  const [theme, setTheme] = useState(currentTheme);
+  const next = theme === 'dark' ? 'light' : 'dark';
+
+  const toggle = () => {
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      // ponytail: private mode, theme just won't persist
+    }
+    setTheme(next);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={next === 'dark' ? 'Ganti ke tema gelap' : 'Ganti ke tema terang'}
+      title={next === 'dark' ? 'Tema gelap' : 'Tema terang'}
+      className="btn-secondary px-0 w-11 sm:w-10"
+    >
+      {theme === 'dark' ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
+    </button>
+  );
+}
+
 export default function Header({
   subnets = [],
   selectedSubnet = null,
@@ -34,102 +55,77 @@ export default function Header({
   };
 
   return (
-    <header className="border-b border-[#1f2637] bg-[#0f121a] sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <header className="bg-surface ledger-rule lg:sticky lg:top-0 z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-[#181d2a] border border-[#273045] text-cyan-400 flex items-center justify-center flex-shrink-0">
-            <Network className="w-4 h-4" aria-hidden="true" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold tracking-tight text-slate-100 font-mono">
-                WatchARP
-              </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#181d2a] text-slate-400 border border-[#273045]">
-                v1.0
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 font-normal">
-              Simple IPAM &amp; Live ARP Scanner
-            </p>
+          <h1 className="text-lg font-bold tracking-tight text-ink">WatchARP</h1>
+          <p className="text-sm text-muted whitespace-nowrap hidden sm:block">Simple IPAM &amp; Live ARP Scanner</p>
+          <div className="ml-auto xl:ml-2">
+            <ThemeToggle />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <div className="flex items-center">
-            <label htmlFor="subnet-select" className="sr-only">
-              Pilih Subnet
-            </label>
-            <select
-              id="subnet-select"
-              value={selectedSubnet ? selectedSubnet.id : ''}
-              onChange={handleSubnetChange}
-              disabled={!hasSubnets || isScanning}
-              className="bg-[#141824] border border-[#273045] rounded-md px-3 py-2 text-sm text-slate-100 min-h-[40px] min-w-[210px] sm:min-w-[250px] font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {!hasSubnets ? (
-                <option value="" disabled>
-                  Belum ada subnet
-                </option>
-              ) : (
-                subnets.map((subnet) => (
-                  <option key={subnet.id} value={subnet.id}>
-                    {`${subnet.name} (${subnet.cidr})${subnet.vlan_id ? ` - VLAN ${subnet.vlan_id}` : ''}`}
-                  </option>
-                ))
-              )}
-            </select>
-            {selectedSubnet && onDeleteSubnet && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm(`Hapus subnet "${selectedSubnet.name}" (${selectedSubnet.cidr}) beserta seluruh datanya?`)) {
-                    onDeleteSubnet(selectedSubnet.id);
-                  }
-                }}
-                disabled={isScanning}
-                title={`Hapus subnet ${selectedSubnet.name}`}
-                className="ml-1.5 p-2 min-h-[40px] min-w-[40px] rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-[#273045] hover:border-rose-500/30 transition-colors flex items-center justify-center focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label={`Hapus subnet ${selectedSubnet.name}`}
-              >
-                <Trash2 className="w-4 h-4" aria-hidden="true" />
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={onOpenAddSubnet}
-            disabled={isScanning}
-            className="px-3 py-2 min-h-[40px] rounded-md text-sm font-medium text-slate-200 bg-[#141824] hover:bg-[#1a2030] border border-[#273045] hover:border-slate-600 transition-colors flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="subnet-select" className="sr-only">
+            Pilih subnet
+          </label>
+          <select
+            id="subnet-select"
+            value={selectedSubnet ? selectedSubnet.id : ''}
+            onChange={handleSubnetChange}
+            disabled={!hasSubnets || isScanning}
+            className="field w-auto flex-1 sm:flex-none sm:min-w-[260px]"
           >
-            <Plus className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <span>Tambah Subnet</span>
+            {!hasSubnets ? (
+              <option value="" disabled>
+                Belum ada subnet
+              </option>
+            ) : (
+              subnets.map((subnet) => (
+                <option key={subnet.id} value={subnet.id}>
+                  {`${subnet.name} (${subnet.cidr})${subnet.vlan_id ? ` - VLAN ${subnet.vlan_id}` : ''}`}
+                </option>
+              ))
+            )}
+          </select>
+          {selectedSubnet && onDeleteSubnet && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Hapus subnet "${selectedSubnet.name}" (${selectedSubnet.cidr}) beserta seluruh datanya?`)) {
+                  onDeleteSubnet(selectedSubnet.id);
+                }
+              }}
+              disabled={isScanning}
+              title={`Hapus subnet ${selectedSubnet.name}`}
+              aria-label={`Hapus subnet ${selectedSubnet.name}`}
+              className="btn-secondary px-0 w-11 sm:w-10 hover:text-bad hover:border-bad"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+            </button>
+          )}
+
+          <button type="button" onClick={onOpenAddSubnet} disabled={isScanning} className="btn-secondary">
+            Tambah Subnet
           </button>
 
           <button
             type="button"
             onClick={onScan}
             disabled={isScanning || !selectedSubnet}
-            title={
-              !selectedSubnet
-                ? 'Pilih atau tambahkan subnet terlebih dahulu'
-                : 'Jalankan live ARP scan pada subnet ini'
-            }
-            className="px-3.5 py-2 min-h-[40px] rounded-md text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-500 transition-colors flex items-center gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!selectedSubnet ? 'Pilih atau tambahkan subnet terlebih dahulu' : 'Kirim ARP ke 254 host di subnet ini'}
+            className="btn-primary"
           >
             {isScanning ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin text-white" aria-hidden="true" />
+                <RefreshCw className="w-4 h-4 animate-spin" aria-hidden="true" />
                 <span>Memindai ARP...</span>
               </>
             ) : (
-              <>
-                <Radio className="w-4 h-4 text-cyan-200" aria-hidden="true" />
-                <span>Scan Subnet Sekarang</span>
-              </>
+              <span>Scan Subnet Sekarang</span>
             )}
           </button>
+
         </div>
       </div>
     </header>

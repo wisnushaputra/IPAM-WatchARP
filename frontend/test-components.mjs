@@ -143,17 +143,17 @@ async function runComponentTests() {
         })
       );
 
-      assert(html.includes('Total &amp; Utilisasi IP') || html.includes('Total & Utilisasi IP'), 'StatCards has Total & Utilisasi IP');
-      assert(html.includes('Perangkat Online'), 'StatCards has Perangkat Online');
-      assert(html.includes('Rogue Devices'), 'StatCards has Rogue Devices');
-      assert(html.includes('MAC Conflict'), 'StatCards has MAC Conflict');
+      assert(html.includes('Utilisasi IP'), 'StatCards has Utilisasi IP');
+      assert(html.includes('>Online<'), 'StatCards has Online');
+      assert(html.includes('Rogue device'), 'StatCards has Rogue device');
+      assert(html.includes('MAC konflik'), 'StatCards has MAC konflik');
       assert(html.includes('50'), 'StatCards displays assigned count 50');
       assert(html.includes('/ 254'), 'StatCards displays / 254');
       assert(html.includes('32'), 'StatCards displays online count 32');
       assert(html.includes('3'), 'StatCards displays rogue count 3');
       assert(html.includes('2'), 'StatCards displays mismatch count 2');
-      assert(html.includes('Perlu Tindakan'), 'StatCards displays Perlu Tindakan badge when rogue > 0');
-      assert(html.includes('Konflik Terdeteksi'), 'StatCards displays Konflik Terdeteksi badge when mismatch > 0');
+      assert(html.includes('Perlu tindakan'), 'StatCards displays Perlu tindakan note when rogue > 0');
+      assert(html.includes('Konflik terdeteksi'), 'StatCards displays Konflik terdeteksi note when mismatch > 0');
       console.log('✓ StatCards renders 4 top metric cards with summary data and semantic anomaly badges');
     }
 
@@ -255,25 +255,25 @@ async function runComponentTests() {
       assert(html.includes('.254<'), 'IpGridMap contains .254 cell');
 
       // Verify color mappings
-      assert(html.includes('bg-indigo-600'), 'IpGridMap contains RESERVED purple class');
-      assert(html.includes('bg-emerald-600'), 'IpGridMap contains VALID_ONLINE emerald class');
-      assert(html.includes('bg-slate-800'), 'IpGridMap contains OFFLINE slate class');
-      assert(html.includes('bg-amber-500'), 'IpGridMap contains ROGUE_DEVICE amber class');
-      assert(html.includes('bg-rose-600'), 'IpGridMap contains MAC_MISMATCH rose class');
-      assert(html.includes('animate-pulse'), 'MAC_MISMATCH contains animate-pulse');
-      assert(html.includes('bg-slate-900'), 'FREE contains dark slate background');
+      assert(html.includes('hatch'), 'RESERVED cells are hatched');
+      assert(html.includes('bg-ok/15'), 'VALID_ONLINE uses ok tint');
+      assert(html.includes('border-dashed'), 'OFFLINE uses dashed border');
+      assert(html.includes('bg-warn/40'), 'ROGUE_DEVICE uses warn tint');
+      assert(html.includes('bg-bad border-bad'), 'MAC_MISMATCH uses solid bad fill');
+      assert(!html.includes('animate-pulse'), 'No endless pulse animation on cells');
+      assert(html.includes('bg-surface border-line text-muted'), 'FREE uses plain surface');
 
       // Verify Legend
-      assert(html.includes('Keterangan Status IP:'), 'IpGridMap contains legend title');
-      assert(html.includes('FREE (Kosong)'), 'Legend contains FREE item');
-      assert(html.includes('VALID ONLINE'), 'Legend contains VALID ONLINE item');
-      assert(html.includes('ROGUE DEVICE'), 'Legend contains ROGUE DEVICE item');
-      assert(html.includes('MAC MISMATCH'), 'Legend contains MAC MISMATCH item');
+      assert(html.includes('Keterangan status IP'), 'IpGridMap contains legend');
+      assert(html.includes('>Free<'), 'Legend contains Free item');
+      assert(html.includes('Valid online'), 'Legend contains Valid online item');
+      assert(html.includes('Rogue device'), 'Legend contains Rogue device item');
+      assert(html.includes('MAC mismatch'), 'Legend contains MAC mismatch item');
 
       // Verify Selected IP Inspector
       assert(html.includes('192.168.1.2'), 'Selected IP inspector displays selected IP address');
       assert(html.includes('Web-Server'), 'Selected IP inspector displays hostname');
-      assert(html.includes('ring-cyan-400'), 'Selected cell has cyan focus ring');
+      assert(html.includes('ring-accent'), 'Selected cell has accent ring');
 
       // Verify Tooltip content structure
       assert(html.includes('role="tooltip"'), 'IpGridMap renders accessible tooltips');
@@ -435,7 +435,7 @@ async function runComponentTests() {
       assert(htmlTable.includes('Assigned'), 'IpTable includes Assigned tab');
 
       // Verify Rogue Device Approve Button
-      assert(htmlTable.includes('Approve / Trust MAC'), 'IpTable renders Approve / Trust MAC button for rogue device');
+      assert(htmlTable.includes('Setujui MAC'), 'IpTable renders Setujui MAC button for rogue device');
 
       // Verify Edit Button
       assert(htmlTable.includes('Edit'), 'IpTable renders Edit button');
@@ -444,8 +444,8 @@ async function runComponentTests() {
       assert(htmlTable.includes('192.168.1.1'), 'IpTable renders 192.168.1.1');
       assert(htmlTable.includes('gateway.local'), 'IpTable renders hostname');
       assert(htmlTable.includes('Raspberry Pi Foundation'), 'IpTable renders vendor info');
-      assert(htmlTable.includes('Rogue Device') || htmlTable.includes('ROGUE DEVICE'), 'IpTable renders Rogue Device badge');
-      assert(htmlTable.includes('MAC Mismatch') || htmlTable.includes('MAC MISMATCH'), 'IpTable renders MAC Mismatch badge');
+      assert(htmlTable.includes('Rogue device'), 'IpTable renders Rogue Device badge');
+      assert(htmlTable.includes('MAC mismatch'), 'IpTable renders MAC Mismatch badge');
 
       // Verify Search input
       assert(htmlTable.includes('Cari IP, Hostname, MAC, Vendor...'), 'IpTable renders search bar with placeholder');

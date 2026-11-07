@@ -1,25 +1,7 @@
 import React from 'react';
-import {
-  Server,
-  Activity,
-  AlertTriangle,
-  ShieldAlert,
-  CheckCircle2,
-} from 'lucide-react';
 
-/**
- * StatCards Component
- * Renders 4 high-level IPAM and ARP reconciliation metric cards:
- * 1. Total & Utilisasi IP (allocated vs total /24)
- * 2. Perangkat Online (active hosts detected)
- * 3. Rogue Devices (unassigned active hosts requiring attention)
- * 4. MAC Conflict (MAC mismatches detected)
- *
- * Props:
- * @param {Object} [props.summary] - Summary metric counts
- * @param {number} [props.totalIps=254] - Total usable IPs in the subnet
- * @param {Array} [props.ips] - Optional raw IP list to compute real-time metrics
- */
+// Utilization gets the wide cell because it is the number an admin plans around;
+// the three counts stay quiet until they are non-zero.
 export default function StatCards({ summary = {}, totalIps = 254, ips = null }) {
   let total = totalIps || summary?.total_ips || 254;
   let assigned = summary?.assigned_count ?? 0;
@@ -38,133 +20,56 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
   const utilizationPct = total > 0 ? Math.round((assigned / total) * 100) : 0;
 
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
-      role="region"
-      aria-label="Metrik Ringkasan Subnet"
+    <dl
+      className="grid grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] border border-line rounded bg-surface [&>div]:p-4 [&>div]:border-line"
+      aria-label="Ringkasan subnet"
     >
-      <div className="bg-[#121622] border border-[#202739] rounded-lg p-4 flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
-            Total & Utilisasi IP
-          </span>
-          <span className="text-xs font-mono font-medium text-cyan-400">{utilizationPct}%</span>
-        </div>
-
-        <div className="mt-3">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold font-mono text-slate-100">{assigned}</span>
-            <span className="text-xs font-mono text-slate-400">{`/ ${total}`}</span>
-          </div>
-
-          <div className="mt-2 w-full bg-[#1b2234] rounded h-1 overflow-hidden">
-            <div
-              className="bg-cyan-500 h-1 transition-all duration-300"
-              style={{ width: `${Math.min(100, Math.max(0, utilizationPct))}%` }}
-              role="progressbar"
-              aria-valuenow={utilizationPct}
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-label="Persentase Utilisasi IP"
-            />
-          </div>
-          <p className="mt-2 text-[11px] text-slate-400 font-mono">
-            Teralokasi secara administratif
-          </p>
+      <div className="col-span-2 lg:col-span-1 border-b lg:border-b-0 lg:border-r">
+        <dt className="text-sm text-muted">Utilisasi IP</dt>
+        <dd className="mt-1 flex items-baseline gap-2">
+          <span className="text-3xl font-bold tabular-nums text-ink">{assigned}</span>
+          <span className="text-sm text-muted tabular-nums">{`/ ${total}`} teralokasi</span>
+          <span className="ml-auto text-sm font-semibold tabular-nums text-ink">{utilizationPct}%</span>
+        </dd>
+        <div
+          className="mt-3 h-1.5 bg-sunken rounded-sm overflow-hidden"
+          role="progressbar"
+          aria-valuenow={utilizationPct}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-label="Persentase utilisasi IP"
+        >
+          <div className="h-full bg-accent" style={{ width: `${Math.min(100, Math.max(0, utilizationPct))}%` }} />
         </div>
       </div>
 
-      <div className="bg-[#121622] border border-[#202739] rounded-lg p-4 flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
-            Perangkat Online
-          </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
-        </div>
-
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-emerald-400">{online}</span>
-            <span className="text-xs font-mono text-slate-400">merespon ARP</span>
-          </div>
-
-          <p className="mt-2 text-[11px] text-slate-400">
-            Terdeteksi pada sapuan broadcast terakhir
-          </p>
-        </div>
+      <div className="border-r">
+        <dt className="text-sm text-muted">Online</dt>
+        <dd className="mt-1">
+          <span className="text-2xl font-bold tabular-nums text-ink">{online}</span>
+          <span className="block text-xs text-muted">merespon ARP di scan terakhir</span>
+        </dd>
       </div>
 
-      <div
-        className={`border rounded-lg p-4 flex flex-col justify-between transition-colors ${
-          rogue > 0
-            ? 'bg-[#1a1710] border-amber-500/50'
-            : 'bg-[#121622] border-[#202739]'
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
-            Rogue Devices
+      <div className="lg:border-r">
+        <dt className="text-sm text-muted">Rogue device</dt>
+        <dd className="mt-1">
+          <span className={`text-2xl font-bold tabular-nums ${rogue > 0 ? 'text-warn' : 'text-ink'}`}>{rogue}</span>
+          <span className={`block text-xs ${rogue > 0 ? 'text-warn font-medium' : 'text-muted'}`}>
+            {rogue > 0 ? 'Perlu tindakan: aktif tanpa catatan' : 'Semua host online tercatat'}
           </span>
-          {rogue > 0 && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              Perlu Tindakan
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <span
-              className={`text-2xl font-bold font-mono ${
-                rogue > 0 ? 'text-amber-400' : 'text-slate-300'
-              }`}
-            >
-              {rogue}
-            </span>
-            <span className="text-xs font-mono text-slate-400">tidak terdaftar</span>
-          </div>
-
-          <p className={`mt-2 text-[11px] ${rogue > 0 ? 'text-amber-200/80' : 'text-slate-400'}`}>
-            {rogue > 0 ? 'IP aktif tanpa pencatatan resmi' : 'Semua perangkat online terdata'}
-          </p>
-        </div>
+        </dd>
       </div>
 
-      <div
-        className={`border rounded-lg p-4 flex flex-col justify-between transition-colors ${
-          mismatch > 0
-            ? 'bg-[#1f1216] border-rose-500/60'
-            : 'bg-[#121622] border-[#202739]'
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
-            MAC Conflict
+      <div className="col-span-2 lg:col-span-1 border-t lg:border-t-0">
+        <dt className="text-sm text-muted">MAC konflik</dt>
+        <dd className="mt-1">
+          <span className={`text-2xl font-bold tabular-nums ${mismatch > 0 ? 'text-bad' : 'text-ink'}`}>{mismatch}</span>
+          <span className={`block text-xs ${mismatch > 0 ? 'text-bad font-medium' : 'text-muted'}`}>
+            {mismatch > 0 ? 'Konflik terdeteksi: MAC beda dari catatan' : 'Tidak ada MAC yang beda'}
           </span>
-          {mismatch > 0 && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-              Konflik Terdeteksi
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3">
-          <div className="flex items-baseline gap-2">
-            <span
-              className={`text-2xl font-bold font-mono ${
-                mismatch > 0 ? 'text-rose-400' : 'text-slate-300'
-              }`}
-            >
-              {mismatch}
-            </span>
-            <span className="text-xs font-mono text-slate-400">ketidakcocokan</span>
-          </div>
-
-          <p className={`mt-2 text-[11px] ${mismatch > 0 ? 'text-rose-200/80 font-medium' : 'text-slate-400'}`}>
-            {mismatch > 0 ? 'Perangkat fisik berbeda dari catatan' : 'Tidak ada anomali MAC terdeteksi'}
-          </p>
-        </div>
+        </dd>
       </div>
-    </div>
+    </dl>
   );
 }

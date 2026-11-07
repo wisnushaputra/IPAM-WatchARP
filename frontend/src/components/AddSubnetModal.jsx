@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Network, AlertCircle, Loader2 } from 'lucide-react';
+import { X, AlertCircle, Loader2 } from 'lucide-react';
 import { createSubnet } from '../services/api.js';
 
 /**
@@ -131,7 +131,7 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -141,15 +141,14 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
         }
       }}
     >
-      <div className="w-full max-w-lg bg-[#121622] border border-[#202739] rounded-lg shadow-2xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#202739] bg-[#0d1019]">
-          <div className="flex items-center gap-3">
-            <Network className="w-5 h-5 text-cyan-400" />
+      <div className="w-full max-w-lg max-h-full overflow-y-auto bg-surface border border-line-strong rounded shadow-xl flex flex-col">
+        <div className="flex items-start justify-between gap-3 px-5 sm:px-6 py-4 ledger-rule">
+          <div>
             <div>
-              <h2 id="modal-title" className="text-base font-semibold text-white">
+              <h2 id="modal-title" className="text-lg font-semibold text-ink">
                 Tambah Subnet Baru
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-muted">
                 Alokasikan network IPv4 /24 untuk IPAM dan pemindaian ARP
               </p>
             </div>
@@ -159,19 +158,19 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
             onClick={onClose}
             disabled={isSubmitting}
             aria-label="Tutup dialog"
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-md hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
+            className="btn-secondary px-0 w-11 sm:w-10 flex-shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           {error && (
             <div
-              className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-md text-rose-200 text-xs flex items-start gap-2.5"
+              className="p-3 bg-bad/10 border border-bad rounded text-ink text-sm flex items-start gap-2.5"
               role="alert"
             >
-              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-bad flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 font-medium leading-relaxed">{error}</div>
             </div>
           )}
@@ -179,19 +178,20 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
           <div className="space-y-1.5">
             <label
               htmlFor="subnet-name"
-              className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
+              className="field-label"
             >
-              Nama Subnet <span className="text-rose-400">*</span>
+              Nama Subnet <span className="text-bad" aria-hidden="true">*</span>
             </label>
             <input
               id="subnet-name"
               type="text"
+              autoFocus
               required
               disabled={isSubmitting}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: LAN Kantor, VLAN 10 Servers"
-              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors disabled:opacity-60"
+              className="field"
             />
           </div>
 
@@ -199,11 +199,11 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="subnet-cidr"
-                className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
+                className="field-label"
               >
-                CIDR (/24) <span className="text-rose-400">*</span>
+                CIDR (/24) <span className="text-bad" aria-hidden="true">*</span>
               </label>
-              <span className="text-[11px] text-slate-400 font-mono">254 host usable</span>
+              <span className="text-xs text-muted">254 host usable</span>
             </div>
             <input
               id="subnet-cidr"
@@ -213,9 +213,9 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
               value={cidr}
               onChange={(e) => setCidr(e.target.value)}
               placeholder="192.168.1.0/24"
-              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors disabled:opacity-60"
+              className="field font-mono"
             />
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-xs text-muted">
               WatchARP mendukung subnet dengan prefix /24.
             </p>
           </div>
@@ -224,7 +224,7 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
             <div className="space-y-1.5">
               <label
                 htmlFor="subnet-gateway"
-                className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
+                className="field-label"
               >
                 IP Gateway (Opsional)
               </label>
@@ -235,14 +235,14 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
                 value={gateway}
                 onChange={(e) => setGateway(e.target.value)}
                 placeholder="192.168.1.1"
-                className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors disabled:opacity-60"
+                className="field font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
               <label
                 htmlFor="subnet-vlan"
-                className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
+                className="field-label"
               >
                 VLAN ID (Opsional)
               </label>
@@ -255,28 +255,28 @@ export default function AddSubnetModal({ isOpen, onClose, onCreated }) {
                 value={vlanId}
                 onChange={(e) => setVlanId(e.target.value)}
                 placeholder="10"
-                className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors disabled:opacity-60"
+                className="field font-mono"
               />
             </div>
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#202739]">
+          <div className="pt-4 flex items-center justify-end gap-2 border-t border-line">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 min-h-[38px] rounded-md text-xs font-mono text-slate-300 bg-[#182133] hover:bg-[#202b40] hover:text-white border border-[#2a3750] transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
+              className="btn-secondary"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 min-h-[38px] rounded-md text-xs font-mono font-semibold text-white bg-cyan-600 hover:bg-cyan-500 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   <span>Menyimpan...</span>
                 </>
               ) : (
