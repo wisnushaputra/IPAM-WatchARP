@@ -26,7 +26,6 @@ _scan_lock = threading.Lock()
 
 @router.post("", response_model=SubnetResponse, status_code=http_status.HTTP_201_CREATED)
 def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
-    # 1. Validate CIDR
     try:
         validate_v4_subnet_24(payload.cidr)
         canonical_cidr = str(ipaddress.IPv4Network(payload.cidr.strip(), strict=False))
@@ -36,7 +35,6 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
             detail=str(e),
         )
 
-    # 2. Check duplicate CIDR
     existing = db.query(Subnet).filter(Subnet.cidr == canonical_cidr).first()
     if existing:
         raise HTTPException(
@@ -44,7 +42,6 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
             detail=f"Subnet with CIDR '{canonical_cidr}' already exists",
         )
 
-    # 3. Validate gateway and generate 254 host IP definitions
     try:
         host_defs = generate_host_ips(canonical_cidr, payload.gateway)
     except ValueError as e:
@@ -53,7 +50,6 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
             detail=str(e),
         )
 
-    # 4. Create Subnet entity
     subnet = Subnet(
         name=payload.name.strip(),
         cidr=canonical_cidr,
@@ -63,7 +59,6 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
     db.add(subnet)
     db.flush()
 
-    # 5. Populate 254 host IP rows
     ip_records = [
         IpAddress(
             subnet_id=subnet.id,

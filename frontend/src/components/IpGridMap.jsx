@@ -22,12 +22,12 @@ const STATUS_LABELS = {
 };
 
 const STATUS_BADGE_CLASSES = {
-  FREE: 'bg-slate-800 text-slate-300 border border-slate-700',
-  VALID_ONLINE: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-  OFFLINE: 'bg-slate-800 text-slate-400 border border-slate-700',
-  ROGUE_DEVICE: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-  MAC_MISMATCH: 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-  RESERVED: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
+  FREE: 'bg-[#181d2a] text-slate-300 border border-[#283248]',
+  VALID_ONLINE: 'bg-[#0f2d1e] text-emerald-300 border border-[#1b4d34]',
+  OFFLINE: 'bg-[#181d2a] text-slate-400 border border-[#283248]',
+  ROGUE_DEVICE: 'bg-[#33220a] text-amber-300 border border-[#593c12]',
+  MAC_MISMATCH: 'bg-[#331119] text-rose-300 border border-[#591e2b]',
+  RESERVED: 'bg-[#1d1b38] text-indigo-300 border border-[#37336b]',
 };
 
 /**
@@ -144,15 +144,14 @@ export default function IpGridMap({
 
   return (
     <div
-      className="bg-slate-850 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-sm space-y-6"
+      className="bg-[#121622] border border-[#202739] rounded-lg p-5 sm:p-6 shadow-sm space-y-6"
       role="region"
       aria-label="Peta Visual IP Grid"
     >
-      {/* Header and Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#202739]">
         <div>
           <div className="flex items-center gap-2">
-            <Grid className="w-5 h-5 text-indigo-400" aria-hidden="true" />
+            <Grid className="w-5 h-5 text-cyan-400" aria-hidden="true" />
             <h3 className="text-base font-semibold text-white">
               Visual IP Grid Map (254 Host)
             </h3>
@@ -162,7 +161,6 @@ export default function IpGridMap({
           </p>
         </div>
 
-        {/* Status Count Pills */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400">
             Free: <strong className="text-slate-200">{tallies.FREE}</strong>
@@ -189,16 +187,15 @@ export default function IpGridMap({
         </div>
       </div>
 
-      {/* Selected IP Quick Inspector Banner */}
       {selectedIp && (
         <div
-          className="p-4 bg-slate-900/90 border border-cyan-500/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md transition-all"
+          className="p-4 bg-[#0d121c] border border-cyan-500/40 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md transition-all"
           role="status"
           aria-live="polite"
         >
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+              <span className="w-2 h-2 rounded-sm bg-cyan-400" />
               <span className="font-mono text-base font-bold text-white">
                 {selectedIp.ip_address}
               </span>
@@ -251,7 +248,7 @@ export default function IpGridMap({
               <button
                 type="button"
                 onClick={() => onEditIp(selectedIp)}
-                className="px-3 py-1.5 min-h-[32px] bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 shadow-sm"
+                className="px-3 py-1.5 min-h-[32px] bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium rounded-md inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-sm"
                 title="Edit konfigurasi host IP ini"
               >
                 <Edit2 className="w-3.5 h-3.5" />
@@ -261,7 +258,7 @@ export default function IpGridMap({
             <button
               type="button"
               onClick={() => onSelectIp && onSelectIp(null)}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-800 transition-colors"
               aria-label="Tutup detail IP terpilih"
               title="Tutup detail terpilih"
             >
@@ -271,11 +268,10 @@ export default function IpGridMap({
         </div>
       )}
 
-      {/* Grid Map: 254 Cells */}
       <div className="relative">
         {isLoading && (
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px] rounded-xl flex items-center justify-center z-10">
-            <div className="text-xs text-indigo-300 font-medium bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 shadow">
+          <div className="absolute inset-0 bg-slate-950/70 rounded-lg flex items-center justify-center z-10">
+            <div className="text-xs text-cyan-300 font-medium bg-slate-950 px-3 py-2 rounded border border-[#202739] shadow">
               Memuat data IP...
             </div>
           </div>
@@ -309,10 +305,9 @@ export default function IpGridMap({
                   .{hostOctet}
                 </button>
 
-                {/* Hover / Focus Tooltip */}
                 <div
                   role="tooltip"
-                  className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex group-focus-within:flex flex-col z-30 w-56 p-3 bg-slate-950/95 border border-slate-700 rounded-lg shadow-xl text-left backdrop-blur-md"
+                  className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex group-focus-within:flex flex-col z-30 w-56 p-3 bg-[#0e131d] border border-[#273248] rounded-md shadow-2xl text-left"
                 >
                   <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-slate-800">
                     <span className="font-mono text-xs font-bold text-white tracking-wide">
@@ -391,8 +386,7 @@ export default function IpGridMap({
                     </div>
                   </div>
 
-                  {/* Tooltip Arrow */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 bg-slate-950 border-r border-b border-slate-700 rotate-45" />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 bg-[#0e131d] border-r border-b border-[#273248] rotate-45" />
                 </div>
               </div>
             );
@@ -400,35 +394,34 @@ export default function IpGridMap({
         </div>
       </div>
 
-      {/* Bottom Status Legend */}
-      <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
+      <div className="pt-4 border-t border-[#202739] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
         <span className="font-medium text-slate-300 flex items-center gap-1.5">
           <Info className="w-3.5 h-3.5 text-slate-400" />
           Keterangan Status IP:
         </span>
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-slate-700 bg-slate-900" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-slate-700 bg-slate-900" />
             <span>FREE (Kosong)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-emerald-500 bg-emerald-600" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-emerald-500 bg-emerald-600" />
             <span>VALID ONLINE</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-slate-700 bg-slate-800" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-slate-700 bg-slate-800" />
             <span>OFFLINE</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-amber-400 bg-amber-500" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-amber-400 bg-amber-500" />
             <span>ROGUE DEVICE</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-rose-500 bg-rose-600 animate-pulse" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-rose-500 bg-rose-600 animate-pulse" />
             <span>MAC MISMATCH</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded border border-indigo-500 bg-indigo-600" />
+            <span className="w-3.5 h-3.5 rounded-sm border border-indigo-500 bg-indigo-600" />
             <span>RESERVED</span>
           </div>
         </div>

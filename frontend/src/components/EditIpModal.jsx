@@ -113,7 +113,7 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-150"
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-ip-modal-title"
@@ -123,16 +123,13 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
         }
       }}
     >
-      <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+      <div className="w-full max-w-lg bg-[#121622] border border-[#202739] rounded-lg shadow-2xl overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#202739] bg-[#0d1019]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg">
-              <Edit2 className="w-5 h-5" />
-            </div>
+            <Edit2 className="w-5 h-5 text-cyan-400" />
             <div>
               <h2 id="edit-ip-modal-title" className="text-base font-semibold text-white">
-                Edit IP: <span className="font-mono text-indigo-300">{ip.ip_address}</span>
+                Edit IP: <span className="font-mono text-cyan-300">{ip.ip_address}</span>
               </h2>
               <p className="text-xs text-slate-400">
                 Konfigurasi status alokasi, hostname, dan Expected MAC untuk rekonsiliasi ARP
@@ -144,18 +141,17 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
             onClick={onClose}
             disabled={isSubmitting}
             aria-label="Tutup dialog edit IP"
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
+            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-md hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Live Status Summary Strip */}
-        <div className="px-6 py-2.5 bg-slate-950/70 border-b border-slate-800/80 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+        <div className="px-6 py-2.5 bg-[#090c14] border-b border-[#202739] flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
           <span className="flex items-center gap-1.5">
             <span
-              className={`w-2 h-2 rounded-full ${
-                ip.is_online ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'
+              className={`w-2 h-2 rounded-sm ${
+                ip.is_online ? 'bg-emerald-400' : 'bg-slate-600'
               }`}
             />
             <span className={ip.is_online ? 'text-emerald-300 font-medium' : 'text-slate-400'}>
@@ -181,11 +177,10 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
           )}
         </div>
 
-        {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
             <div
-              className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-lg text-rose-200 text-xs flex items-start gap-2.5"
+              className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-md text-rose-200 text-xs flex items-start gap-2.5"
               role="alert"
             >
               <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
@@ -193,11 +188,10 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
             </div>
           )}
 
-          {/* Admin Status */}
           <div className="space-y-1.5">
             <label
               htmlFor="edit-admin-status"
-              className="block text-xs font-medium uppercase tracking-wider text-slate-300"
+              className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
             >
               Status Admin <span className="text-rose-400">*</span>
             </label>
@@ -206,7 +200,7 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
               value={adminStatus}
               onChange={(e) => setAdminStatus(e.target.value)}
               disabled={isSubmitting}
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:opacity-60"
+              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-xs sm:text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors font-mono disabled:opacity-60"
             >
               <option value="available">Available (Tersedia / Kosong)</option>
               <option value="assigned">Assigned (Dialokasikan ke Perangkat)</option>
@@ -217,11 +211,10 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
             </p>
           </div>
 
-          {/* Hostname */}
           <div className="space-y-1.5">
             <label
               htmlFor="edit-hostname"
-              className="block text-xs font-medium uppercase tracking-wider text-slate-300"
+              className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
             >
               Hostname (Nama Perangkat)
             </label>
@@ -232,17 +225,15 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
               onChange={(e) => setHostname(e.target.value)}
               disabled={isSubmitting}
               placeholder="contoh: server-db-01, ap-floor2, printer-marketing"
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:opacity-60"
-            >
-            </input>
+              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors font-mono disabled:opacity-60"
+            />
           </div>
 
-          {/* Expected MAC Address */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="edit-expected-mac"
-                className="block text-xs font-medium uppercase tracking-wider text-slate-300"
+                className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
               >
                 Expected MAC Address
               </label>
@@ -252,7 +243,7 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
                   type="button"
                   onClick={handleUseDetectedMac}
                   disabled={isSubmitting}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-mono transition-colors focus-visible:ring-1 focus-visible:ring-indigo-400 rounded px-1"
+                  className="text-xs text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1 font-mono transition-colors focus-visible:ring-1 focus-visible:ring-cyan-400 rounded px-1"
                 >
                   {copiedHelper ? (
                     <>
@@ -276,18 +267,17 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
               onChange={(e) => setExpectedMac(e.target.value)}
               disabled={isSubmitting}
               placeholder="AA:BB:CC:DD:EE:FF"
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 py-2.5 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors uppercase disabled:opacity-60"
+              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-xs sm:text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors uppercase disabled:opacity-60"
             />
             <p className="text-[11px] text-slate-400">
               Jika diisi, rekonsiliasi ARP akan mendeteksi apakah MAC terdeteksi cocok atau terjadi <strong>MAC_MISMATCH</strong>.
             </p>
           </div>
 
-          {/* Description */}
           <div className="space-y-1.5">
             <label
               htmlFor="edit-description"
-              className="block text-xs font-medium uppercase tracking-wider text-slate-300"
+              className="block text-xs font-mono font-medium uppercase tracking-wider text-slate-300"
             >
               Deskripsi / Catatan Tambahan
             </label>
@@ -298,28 +288,27 @@ export default function EditIpModal({ ip, isOpen, onClose, onSaved }) {
               onChange={(e) => setDescription(e.target.value)}
               disabled={isSubmitting}
               placeholder="Catatan penugasan IP, lokasi port switch, pemegang perangkat..."
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors resize-none disabled:opacity-60"
+              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md px-3.5 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors resize-none disabled:opacity-60 font-mono"
             />
           </div>
 
-          {/* Modal Actions */}
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#202739]">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
+              className="px-4 py-2 min-h-[38px] rounded-md text-xs font-mono text-slate-300 bg-[#182133] hover:bg-[#202b40] hover:text-white border border-[#2a3750] transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 min-h-[44px] rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              className="px-4 py-2 min-h-[38px] rounded-md text-xs font-mono font-semibold text-white bg-cyan-600 hover:bg-cyan-500 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Menyimpan...</span>
                 </>
               ) : (

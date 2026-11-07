@@ -103,17 +103,14 @@ def lookup_vendor(mac: Optional[str]) -> Optional[str]:
 
     oui = normalized[:8].upper()
 
-    # 1. Check in-memory cache
     if oui in _OUI_CACHE:
         return _OUI_CACHE[oui]
 
-    # 2. Check built-in table
     if oui in BUILTIN_VENDORS:
         vendor = BUILTIN_VENDORS[oui]
         _OUI_CACHE[oui] = vendor
         return vendor
 
-    # 3. Fallback to mac-vendor-lookup library
     lookup_obj = _get_mac_lookup()
     if lookup_obj is not None:
         try:

@@ -27,7 +27,6 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
   let rogue = summary?.rogue_count ?? 0;
   let mismatch = summary?.mismatch_count ?? 0;
 
-  // Compute directly from ips array if provided and non-empty
   if (Array.isArray(ips) && ips.length > 0) {
     total = ips.length;
     assigned = ips.filter((ip) => ip.admin_status === 'assigned').length;
@@ -40,31 +39,27 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
       role="region"
       aria-label="Metrik Ringkasan Subnet"
     >
-      {/* 1. Total & Utilisasi IP */}
-      <div className="bg-slate-850 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition-colors shadow-sm">
+      <div className="bg-[#121622] border border-[#202739] rounded-lg p-4 flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
             Total & Utilisasi IP
           </span>
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-            <Server className="w-4 h-4" aria-hidden="true" />
-          </div>
+          <span className="text-xs font-mono font-medium text-cyan-400">{utilizationPct}%</span>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold font-mono text-white">{assigned}</span>
-            <span className="text-sm font-mono text-slate-500">{`/ ${total}`}</span>
+            <span className="text-2xl font-bold font-mono text-slate-100">{assigned}</span>
+            <span className="text-xs font-mono text-slate-400">{`/ ${total}`}</span>
           </div>
 
-          {/* Utilization progress bar */}
-          <div className="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="mt-2 w-full bg-[#1b2234] rounded h-1 overflow-hidden">
             <div
-              className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
+              className="bg-cyan-500 h-1 transition-all duration-300"
               style={{ width: `${Math.min(100, Math.max(0, utilizationPct))}%` }}
               role="progressbar"
               aria-valuenow={utilizationPct}
@@ -73,60 +68,51 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
               aria-label="Persentase Utilisasi IP"
             />
           </div>
-
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-            <span>Terutilisasi</span>
-            <span className="font-semibold text-indigo-300 font-mono">{`${utilizationPct}%`}</span>
-          </div>
+          <p className="mt-2 text-[11px] text-slate-400 font-mono">
+            Teralokasi secara administratif
+          </p>
         </div>
       </div>
 
-      {/* 2. Perangkat Online */}
-      <div className="bg-slate-850 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition-colors shadow-sm">
+      <div className="bg-[#121622] border border-[#202739] rounded-lg p-4 flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
             Perangkat Online
           </span>
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <Activity className="w-4 h-4" aria-hidden="true" />
-          </div>
+          <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-emerald-400">{online}</span>
-            <span className="text-xs text-slate-400">host aktif</span>
+            <span className="text-xs font-mono text-slate-400">merespon ARP</span>
           </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Responsif terhadap ARP scan</span>
-          </div>
+          <p className="mt-2 text-[11px] text-slate-400">
+            Terdeteksi pada sapuan broadcast terakhir
+          </p>
         </div>
       </div>
 
-      {/* 3. Rogue Devices */}
       <div
-        className={`bg-slate-850 border rounded-xl p-5 flex flex-col justify-between transition-colors shadow-sm ${
-          rogue > 0 ? 'border-amber-500/40 bg-amber-950/10' : 'border-slate-800 hover:border-slate-700'
+        className={`border rounded-lg p-4 flex flex-col justify-between transition-colors ${
+          rogue > 0
+            ? 'bg-[#1a1710] border-amber-500/50'
+            : 'bg-[#121622] border-[#202739]'
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
             Rogue Devices
           </span>
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              rogue > 0
-                ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400'
-                : 'bg-slate-800 text-slate-500'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" aria-hidden="true" />
-          </div>
+          {rogue > 0 && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              Perlu Tindakan
+            </span>
+          )}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <div className="flex items-baseline gap-2">
             <span
               className={`text-2xl font-bold font-mono ${
@@ -135,47 +121,34 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
             >
               {rogue}
             </span>
-            <span className="text-xs text-slate-400">perangkat</span>
+            <span className="text-xs font-mono text-slate-400">tidak terdaftar</span>
           </div>
 
-          <div className="mt-3">
-            {rogue > 0 ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                Perlu Tindakan
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                Semua IP online terdaftar
-              </span>
-            )}
-          </div>
+          <p className={`mt-2 text-[11px] ${rogue > 0 ? 'text-amber-200/80' : 'text-slate-400'}`}>
+            {rogue > 0 ? 'IP aktif tanpa pencatatan resmi' : 'Semua perangkat online terdata'}
+          </p>
         </div>
       </div>
 
-      {/* 4. MAC Conflict */}
       <div
-        className={`bg-slate-850 border rounded-xl p-5 flex flex-col justify-between transition-colors shadow-sm ${
-          mismatch > 0 ? 'border-rose-500/40 bg-rose-950/10' : 'border-slate-800 hover:border-slate-700'
+        className={`border rounded-lg p-4 flex flex-col justify-between transition-colors ${
+          mismatch > 0
+            ? 'bg-[#1f1216] border-rose-500/60'
+            : 'bg-[#121622] border-[#202739]'
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <span className="text-[11px] font-mono text-slate-400 tracking-wider uppercase">
             MAC Conflict
           </span>
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              mismatch > 0
-                ? 'bg-rose-500/20 border border-rose-500/30 text-rose-400'
-                : 'bg-slate-800 text-slate-500'
-            }`}
-          >
-            <ShieldAlert className="w-4 h-4" aria-hidden="true" />
-          </div>
+          {mismatch > 0 && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+              Konflik Terdeteksi
+            </span>
+          )}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <div className="flex items-baseline gap-2">
             <span
               className={`text-2xl font-bold font-mono ${
@@ -184,22 +157,12 @@ export default function StatCards({ summary = {}, totalIps = 254, ips = null }) 
             >
               {mismatch}
             </span>
-            <span className="text-xs text-slate-400">konflik</span>
+            <span className="text-xs font-mono text-slate-400">ketidakcocokan</span>
           </div>
 
-          <div className="mt-3">
-            {mismatch > 0 ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
-                <ShieldAlert className="w-3 h-3 flex-shrink-0" />
-                Konflik Terdeteksi
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                Tidak ada anomali MAC
-              </span>
-            )}
-          </div>
+          <p className={`mt-2 text-[11px] ${mismatch > 0 ? 'text-rose-200/80 font-medium' : 'text-slate-400'}`}>
+            {mismatch > 0 ? 'Perangkat fisik berbeda dari catatan' : 'Tidak ada anomali MAC terdeteksi'}
+          </p>
         </div>
       </div>
     </div>

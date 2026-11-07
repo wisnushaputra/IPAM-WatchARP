@@ -25,12 +25,12 @@ const STATUS_LABELS = {
 };
 
 const STATUS_BADGE_CLASSES = {
-  FREE: 'bg-slate-800 text-slate-300 border border-slate-700',
-  VALID_ONLINE: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-  OFFLINE: 'bg-slate-800 text-slate-400 border border-slate-700',
-  ROGUE_DEVICE: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-  MAC_MISMATCH: 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-  RESERVED: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
+  FREE: 'bg-[#181d2a] text-slate-300 border border-[#283248]',
+  VALID_ONLINE: 'bg-[#0f2d1e] text-emerald-300 border border-[#1b4d34]',
+  OFFLINE: 'bg-[#181d2a] text-slate-400 border border-[#283248]',
+  ROGUE_DEVICE: 'bg-[#33220a] text-amber-300 border border-[#593c12]',
+  MAC_MISMATCH: 'bg-[#331119] text-rose-300 border border-[#591e2b]',
+  RESERVED: 'bg-[#1d1b38] text-indigo-300 border border-[#37336b]',
 };
 
 const ADMIN_STATUS_LABELS = {
@@ -40,9 +40,9 @@ const ADMIN_STATUS_LABELS = {
 };
 
 const ADMIN_STATUS_CLASSES = {
-  available: 'bg-slate-800 text-slate-400 border border-slate-700',
-  assigned: 'bg-indigo-950/70 text-indigo-300 border border-indigo-800/80',
-  reserved: 'bg-purple-950/70 text-purple-300 border border-purple-800/80',
+  available: 'bg-[#181d2a] text-slate-400 border border-[#283248]',
+  assigned: 'bg-[#112437] text-cyan-300 border border-[#1c3e5e]',
+  reserved: 'bg-[#201c38] text-indigo-300 border border-[#3b3464]',
 };
 
 function formatLastSeen(dateString) {
@@ -169,29 +169,28 @@ export default function IpTable({
       label: 'Rogue Devices',
       count: tabCounts.ROGUE_DEVICES,
       badgeColor:
-        tabCounts.ROGUE_DEVICES > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : '',
+        tabCounts.ROGUE_DEVICES > 0 ? 'bg-[#33220a] text-amber-300 border border-[#593c12]' : '',
     },
     {
       key: 'MISMATCHES',
       label: 'Mismatches',
       count: tabCounts.MISMATCHES,
       badgeColor:
-        tabCounts.MISMATCHES > 0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : '',
+        tabCounts.MISMATCHES > 0 ? 'bg-[#331119] text-rose-300 border border-[#591e2b]' : '',
     },
     { key: 'ASSIGNED', label: 'Assigned', count: tabCounts.ASSIGNED },
   ];
 
   return (
     <div
-      className="bg-slate-850 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-sm space-y-5"
+      className="bg-[#121622] border border-[#202739] rounded-lg p-5 sm:p-6 shadow-sm space-y-5"
       role="region"
       aria-label="Tabel Rincian IP Host"
     >
-      {/* Top Header: Title, Search Bar, and Page Size */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-white flex items-center gap-2">
-            <HardDrive className="w-5 h-5 text-indigo-400" />
+            <HardDrive className="w-5 h-5 text-cyan-400" />
             <span>Daftar Rincian IP Host</span>
           </h3>
           <p className="mt-0.5 text-xs text-slate-400">
@@ -199,7 +198,6 @@ export default function IpTable({
           </p>
         </div>
 
-        {/* Search Input Bar */}
         <div className="flex items-center gap-3 w-full lg:w-auto">
           <div className="relative flex-1 sm:w-80">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -209,7 +207,7 @@ export default function IpTable({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari IP, Hostname, MAC, Vendor..."
               aria-label="Cari IP, Hostname, MAC, atau Vendor"
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-9 pr-9 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+              className="w-full bg-[#0b0e17] border border-[#263248] rounded-md pl-9 pr-9 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-colors font-mono"
             />
             {searchQuery && (
               <button
@@ -223,7 +221,6 @@ export default function IpTable({
             )}
           </div>
 
-          {/* Page Size Select */}
           <div className="flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap">
             <label htmlFor="ip-table-page-size" className="hidden sm:inline">
               Baris:
@@ -232,7 +229,7 @@ export default function IpTable({
               id="ip-table-page-size"
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="bg-[#0b0e17] border border-[#263248] rounded-md px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors font-mono"
             >
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -242,8 +239,7 @@ export default function IpTable({
         </div>
       </div>
 
-      {/* Filter Tabs Strip */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-800 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[#202739] scrollbar-none">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
@@ -251,18 +247,18 @@ export default function IpTable({
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium inline-flex items-center gap-2 transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono inline-flex items-center gap-2 transition-all whitespace-nowrap focus-visible:ring-2 focus-visible:ring-cyan-500 border ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-sm font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  ? 'bg-[#182133] text-cyan-300 border-[#2b3a56] font-semibold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#141a27] border-transparent'
               }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
+                className={`text-[11px] px-1.5 py-0.5 rounded font-mono ${
                   isActive
-                    ? 'bg-indigo-800 text-indigo-100'
-                    : tab.badgeColor || 'bg-slate-800 text-slate-400'
+                    ? 'bg-[#112338] text-cyan-200 border border-[#1e3e60]'
+                    : tab.badgeColor || 'bg-slate-900 text-slate-400 border border-slate-700'
                 }`}
               >
                 {tab.count}
@@ -272,11 +268,10 @@ export default function IpTable({
         })}
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
+      <div className="overflow-x-auto rounded-md border border-[#202739] bg-[#0c0f18]">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 uppercase tracking-wider font-semibold">
+            <tr className="border-b border-[#202739] bg-[#090c14] text-slate-400 uppercase tracking-wider font-semibold font-mono text-[11px]">
               <th scope="col" className="py-3 px-4">
                 IP Address
               </th>
@@ -303,7 +298,7 @@ export default function IpTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/70">
+          <tbody className="divide-y divide-[#1e2536]">
             {paginatedIps.length === 0 ? (
               <tr>
                 <td colSpan="8" className="py-12 text-center text-slate-400">
@@ -322,7 +317,7 @@ export default function IpTable({
                           setSearchQuery('');
                           setActiveTab('ALL');
                         }}
-                        className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 underline font-medium"
+                        className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 underline font-medium"
                       >
                         Reset Filter & Pencarian
                       </button>
@@ -344,15 +339,14 @@ export default function IpTable({
                     onClick={() => onSelectIp && onSelectIp(ip)}
                     className={`transition-colors cursor-pointer select-none ${
                       isSelected
-                        ? 'bg-cyan-950/40 ring-1 ring-inset ring-cyan-500/50'
-                        : 'hover:bg-slate-800/40'
+                        ? 'bg-[#0e2130] ring-1 ring-inset ring-cyan-500/40'
+                        : 'hover:bg-[#141a27]'
                     }`}
                   >
-                    {/* IP Address Column */}
                     <td className="py-3 px-4 font-mono font-semibold text-slate-100 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          className={`w-2 h-2 rounded-sm flex-shrink-0 ${
                             ip.is_online ? 'bg-emerald-400 shadow-sm' : 'bg-slate-600'
                           }`}
                           title={ip.is_online ? 'Online' : 'Offline'}
@@ -361,7 +355,6 @@ export default function IpTable({
                       </div>
                     </td>
 
-                    {/* Status Admin Column */}
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span
                         className={`inline-block text-[11px] px-2 py-0.5 rounded font-medium ${
@@ -372,17 +365,14 @@ export default function IpTable({
                       </span>
                     </td>
 
-                    {/* Hostname Column */}
                     <td className="py-3 px-3 text-slate-200 max-w-[150px] truncate" title={ip.hostname || '-'}>
                       {ip.hostname || <span className="text-slate-500">-</span>}
                     </td>
 
-                    {/* Expected MAC Column */}
                     <td className="py-3 px-3 font-mono text-slate-300 whitespace-nowrap">
                       {ip.expected_mac || <span className="text-slate-500">-</span>}
                     </td>
 
-                    {/* Detected MAC (Vendor) Column */}
                     <td className="py-3 px-3 font-mono whitespace-nowrap">
                       {ip.detected_mac ? (
                         <div className="flex flex-col">
@@ -398,7 +388,6 @@ export default function IpTable({
                       )}
                     </td>
 
-                    {/* Status Rekonsiliasi Column */}
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span
                         className={`inline-block text-[11px] px-2.5 py-0.5 rounded font-semibold tracking-wide uppercase ${
@@ -409,12 +398,10 @@ export default function IpTable({
                       </span>
                     </td>
 
-                    {/* Terakhir Terlihat Column */}
-                    <td className="py-3 px-3 text-slate-400 whitespace-nowrap">
+                    <td className="py-3 px-3 text-slate-400 whitespace-nowrap font-mono">
                       {formatLastSeen(ip.last_seen_at)}
                     </td>
 
-                    {/* Aksi Column */}
                     <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         {isRogue && onTrustMac && (
@@ -422,7 +409,7 @@ export default function IpTable({
                             type="button"
                             onClick={() => onTrustMac(ip.id)}
                             disabled={isTrusting}
-                            className="px-2.5 py-1.5 min-h-[32px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            className="px-2.5 py-1.5 min-h-[32px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-md inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm font-mono"
                             title="Setujui perangkat: simpan Detected MAC sebagai Expected MAC dan tandai sebagai Assigned"
                           >
                             {isTrusting ? (
@@ -444,7 +431,7 @@ export default function IpTable({
                             type="button"
                             onClick={() => onEditIp(ip)}
                             aria-label={`Edit ${ip.ip_address}`}
-                            className="px-2.5 py-1.5 min-h-[32px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium rounded-lg border border-slate-700 inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            className="px-2.5 py-1.5 min-h-[32px] bg-[#1a2233] hover:bg-[#232d42] text-slate-200 hover:text-white text-xs font-medium rounded-md border border-[#2d3a54] inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 font-mono"
                             title="Edit konfigurasi host IP"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -461,8 +448,7 @@ export default function IpTable({
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs text-slate-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs text-slate-400 font-mono">
         <div>
           {filteredIps.length > 0 ? (
             <span>
@@ -481,7 +467,7 @@ export default function IpTable({
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={validCurrentPage <= 1}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="px-2.5 py-1.5 rounded-md border border-[#283348] bg-[#10141f] text-slate-300 hover:bg-[#192030] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500"
               aria-label="Halaman sebelumnya"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -496,7 +482,7 @@ export default function IpTable({
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={validCurrentPage >= totalPages}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="px-2.5 py-1.5 rounded-md border border-[#283348] bg-[#10141f] text-slate-300 hover:bg-[#192030] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500"
               aria-label="Halaman berikutnya"
             >
               <span>Berikutnya</span>

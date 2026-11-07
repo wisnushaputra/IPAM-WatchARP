@@ -221,8 +221,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-      {/* Top Application Header */}
+    <div className="min-h-screen bg-[#0c0e14] text-slate-100 flex flex-col font-sans">
       <Header
         subnets={subnets}
         selectedSubnet={selectedSubnet}
@@ -233,12 +232,10 @@ export default function App() {
         isScanning={isScanning}
       />
 
-      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-        {/* Scan Notification Banner */}
         {scanNotification && (
           <div
-            className={`p-4 rounded-xl border flex items-start justify-between gap-3 transition-all ${
+            className={`p-4 rounded-lg border flex items-start justify-between gap-3 transition-all ${
               scanNotification.type === 'error'
                 ? 'bg-rose-950/60 border-rose-800 text-rose-200'
                 : 'bg-emerald-950/60 border-emerald-800 text-emerald-200'
@@ -257,42 +254,37 @@ export default function App() {
               type="button"
               onClick={() => setScanNotification(null)}
               aria-label="Tutup notifikasi"
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/50 transition-colors"
+              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800/50 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* Global Loading State */}
         {isLoading && subnets.length === 0 ? (
-          <div className="p-12 text-center border border-slate-800 bg-slate-850 rounded-xl">
-            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-300">Memuat data subnet...</p>
+          <div className="p-12 text-center border border-[#202739] bg-[#121622] rounded-lg">
+            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-3" />
+            <p className="text-sm text-slate-300 font-mono">Memuat data subnet...</p>
           </div>
         ) : error ? (
-          /* Error State */
-          <div className="p-8 text-center border border-rose-800/60 bg-rose-950/30 rounded-xl space-y-3">
+          <div className="p-8 text-center border border-rose-900/60 bg-[#1e0e13] rounded-lg space-y-3">
             <AlertTriangle className="w-8 h-8 text-rose-400 mx-auto" />
             <h2 className="text-base font-semibold text-rose-200">Gagal Memuat Subnet</h2>
             <p className="text-sm text-rose-300 max-w-md mx-auto">{error}</p>
             <button
               type="button"
               onClick={() => loadSubnets()}
-              className="mt-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition-colors"
+              className="mt-2 px-4 py-2 bg-[#182133] hover:bg-[#202b40] text-slate-200 text-xs font-mono rounded-md border border-[#2a3750] transition-colors"
             >
               Coba Lagi
             </button>
           </div>
         ) : subnets.length === 0 ? (
-          /* Empty State: No Subnets Created Yet */
-          <div className="p-12 text-center border border-slate-800 bg-slate-850 rounded-2xl max-w-xl mx-auto my-8 space-y-4">
-            <div className="w-14 h-14 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-2xl flex items-center justify-center mx-auto">
-              <Network className="w-7 h-7" />
-            </div>
+          <div className="p-10 text-center border border-[#202739] bg-[#121622] rounded-lg max-w-xl mx-auto my-8 space-y-4">
+            <Network className="w-10 h-10 text-cyan-400 mx-auto" />
             <div>
               <h2 className="text-lg font-semibold text-white">Belum Ada Subnet Terdaftar</h2>
-              <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">
+              <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">
                 WatchARP siap mengelola IP address dan mendeteksi host jaringan melalui ARP scanning.
                 Tambahkan subnet IPv4 /24 pertama Anda untuk memulai.
               </p>
@@ -301,7 +293,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsAddSubnetModalOpen(true)}
-                className="px-5 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="px-4 py-2 min-h-[38px] bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold rounded-md transition-colors inline-flex items-center gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-500"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Subnet Pertama</span>
@@ -309,10 +301,8 @@ export default function App() {
             </div>
           </div>
         ) : selectedSubnet ? (
-          /* Subnet Detail View */
           <div className="space-y-6">
-            {/* Subnet Metadata Card */}
-            <div className="bg-slate-850 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-sm">
+            <div className="bg-[#121622] border border-[#202739] rounded-lg p-5 sm:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
@@ -320,7 +310,7 @@ export default function App() {
                       {selectedSubnet.name}
                     </h2>
                     {selectedSubnet.vlan_id && (
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                      <span className="text-xs px-2 py-0.5 rounded bg-[#182133] text-cyan-300 border border-[#283955] font-mono">
                         VLAN {selectedSubnet.vlan_id}
                       </span>
                     )}
@@ -341,7 +331,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
                   <Clock className="w-4 h-4 text-slate-500" />
                   <span>
                     Terakhir di-scan:{' '}
@@ -355,14 +345,12 @@ export default function App() {
               </div>
             </div>
 
-            {/* 4 Top Metric Cards */}
             <StatCards
               summary={selectedSubnet}
               totalIps={selectedSubnet.total_ips || 254}
               ips={ips}
             />
 
-            {/* 254 IP Visual Grid Map */}
             <IpGridMap
               ips={ips}
               selectedIp={selectedIp}
@@ -371,7 +359,6 @@ export default function App() {
               isLoading={isIpsLoading}
             />
 
-            {/* Detailed IP Inventory Table */}
             <IpTable
               ips={ips}
               selectedIp={selectedIp}
@@ -384,14 +371,12 @@ export default function App() {
         ) : null}
       </main>
 
-      {/* Add Subnet Modal */}
       <AddSubnetModal
         isOpen={isAddSubnetModalOpen}
         onClose={() => setIsAddSubnetModalOpen(false)}
         onCreated={handleSubnetCreated}
       />
 
-      {/* Edit IP Host Details Modal */}
       <EditIpModal
         isOpen={isEditModalOpen}
         ip={editingIp}
