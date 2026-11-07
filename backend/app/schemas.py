@@ -59,3 +59,15 @@ class IpAddressUpdate(BaseModel):
     expected_mac: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ScanHistoryResponse(BaseModel):
+    id: int
+    subnet_id: int
+    scanned_at: datetime
+    total_online: int
+    total_anomalies: int
+    duration_ms: int
+
+    model_config = ConfigDict(from_attributes=True)
+

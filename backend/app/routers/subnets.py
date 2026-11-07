@@ -1,16 +1,30 @@
+from datetime import datetime, timezone
 import ipaddress
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+import threading
+import time
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status as http_status
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import IpAddress, Subnet
-from app.schemas import SubnetCreate, SubnetResponse, SubnetSummary
-from app.services.ip_calculator import generate_host_ips, validate_v4_subnet_24
+from app.models import IpAddress, ScanHistory, Subnet
+from app.schemas import (
+    IpAddressResponse,
+    ScanHistoryResponse,
+    SubnetCreate,
+    SubnetResponse,
+    SubnetSummary,
+)
+from app.services.arp_scanner import perform_arp_scan
+from app.services.ip_calculator import generate_host_ips, reconcile_status, validate_v4_subnet_24
 
 router = APIRouter(prefix="/api/subnets", tags=["subnets"])
 
+_active_scans: set[int] = set()
+_scan_lock = threading.Lock()
 
-@router.post("", response_model=SubnetResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post("", response_model=SubnetResponse, status_code=http_status.HTTP_201_CREATED)
 def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
     # 1. Validate CIDR
     try:
@@ -18,7 +32,7 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
         canonical_cidr = str(ipaddress.IPv4Network(payload.cidr.strip(), strict=False))
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
 
@@ -26,7 +40,7 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
     existing = db.query(Subnet).filter(Subnet.cidr == canonical_cidr).first()
     if existing:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
             detail=f"Subnet with CIDR '{canonical_cidr}' already exists",
         )
 
@@ -35,7 +49,7 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
         host_defs = generate_host_ips(canonical_cidr, payload.gateway)
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
 
@@ -121,7 +135,7 @@ def get_subnet(subnet_id: int, db: Session = Depends(get_db)):
     subnet = db.query(Subnet).filter(Subnet.id == subnet_id).first()
     if not subnet:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Subnet not found",
         )
     return SubnetResponse(
@@ -136,14 +150,108 @@ def get_subnet(subnet_id: int, db: Session = Depends(get_db)):
     )
 
 
-@router.delete("/{subnet_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{subnet_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 def delete_subnet(subnet_id: int, db: Session = Depends(get_db)):
     subnet = db.query(Subnet).filter(Subnet.id == subnet_id).first()
     if not subnet:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Subnet not found",
         )
     db.delete(subnet)
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return Response(status_code=http_status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{subnet_id}/ips", response_model=list[IpAddressResponse])
+def get_subnet_ips(
+    subnet_id: int,
+    status: Optional[str] = Query(None, description="Filter by reconciliation_status"),
+    db: Session = Depends(get_db),
+):
+    subnet = db.query(Subnet).filter(Subnet.id == subnet_id).first()
+    if not subnet:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Subnet not found",
+        )
+
+    query = db.query(IpAddress).filter(IpAddress.subnet_id == subnet_id)
+    if status is not None and status.strip():
+        query = query.filter(IpAddress.reconciliation_status == status.strip().upper())
+
+    ips = query.all()
+    return sorted(ips, key=lambda x: ipaddress.IPv4Address(x.ip_address))
+
+
+@router.post("/{subnet_id}/scan", response_model=ScanHistoryResponse)
+def scan_subnet(subnet_id: int, db: Session = Depends(get_db)):
+    subnet = (
+        db.query(Subnet)
+        .options(selectinload(Subnet.ip_addresses))
+        .filter(Subnet.id == subnet_id)
+        .first()
+    )
+    if not subnet:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Subnet not found",
+        )
+
+    with _scan_lock:
+        if subnet_id in _active_scans:
+            raise HTTPException(
+                status_code=http_status.HTTP_409_CONFLICT,
+                detail=f"A scan is already in progress for subnet {subnet_id}",
+            )
+        _active_scans.add(subnet_id)
+
+    try:
+        start_time = time.perf_counter()
+        scan_results = perform_arp_scan(subnet.cidr, sample_gateway=subnet.gateway)
+        duration_ms = max(1, int((time.perf_counter() - start_time) * 1000))
+        now = datetime.now(timezone.utc)
+
+        scan_map = {item["ip_address"]: item for item in scan_results}
+
+        for ip_rec in subnet.ip_addresses:
+            if ip_rec.ip_address in scan_map:
+                hit = scan_map[ip_rec.ip_address]
+                ip_rec.is_online = True
+                ip_rec.detected_mac = hit.get("detected_mac")
+                if hit.get("vendor"):
+                    ip_rec.vendor = hit.get("vendor")
+                ip_rec.last_seen_at = now
+            else:
+                ip_rec.is_online = False
+
+            ip_rec.reconciliation_status = reconcile_status(
+                admin_status=ip_rec.admin_status,
+                is_online=ip_rec.is_online,
+                expected_mac=ip_rec.expected_mac,
+                detected_mac=ip_rec.detected_mac,
+            )
+
+        total_online = sum(1 for ip in subnet.ip_addresses if ip.is_online)
+        total_anomalies = sum(
+            1
+            for ip in subnet.ip_addresses
+            if ip.reconciliation_status in ("ROGUE_DEVICE", "MAC_MISMATCH")
+        )
+
+        scan_history = ScanHistory(
+            subnet_id=subnet.id,
+            scanned_at=now,
+            total_online=total_online,
+            total_anomalies=total_anomalies,
+            duration_ms=duration_ms,
+        )
+        db.add(scan_history)
+        subnet.last_scanned_at = now
+        db.commit()
+        db.refresh(scan_history)
+
+        return scan_history
+    finally:
+        with _scan_lock:
+            _active_scans.discard(subnet_id)

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
-from app.routers import subnets
+from app.routers import ips, subnets
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(subnets.router)
+app.include_router(ips.router)
 
 
 @app.get("/api/health", tags=["system"])
