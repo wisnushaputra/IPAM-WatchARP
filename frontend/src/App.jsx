@@ -3,6 +3,8 @@ import Header from './components/Header.jsx';
 import AddSubnetModal from './components/AddSubnetModal.jsx';
 import StatCards from './components/StatCards.jsx';
 import IpGridMap from './components/IpGridMap.jsx';
+import IpTable from './components/IpTable.jsx';
+import EditIpModal from './components/EditIpModal.jsx';
 import api from './services/api.js';
 import {
   Network,
@@ -23,6 +25,9 @@ export default function App() {
   const [isIpsLoading, setIsIpsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isAddSubnetModalOpen, setIsAddSubnetModalOpen] = useState(false);
+  const [editingIp, setEditingIp] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTrustingId, setIsTrustingId] = useState(null);
   const [scanNotification, setScanNotification] = useState(null);
   const [error, setError] = useState(null);
 
@@ -138,6 +143,61 @@ export default function App() {
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const handleOpenEdit = (ip) => {
+    setEditingIp(ip);
+    setIsEditModalOpen(true);
+  };
+
+  const handleTrustMac = async (ipId) => {
+    if (!ipId || isTrustingId) return;
+    try {
+      setIsTrustingId(ipId);
+      const updatedIp = await api.trustMac(ipId);
+
+      // Update local ips list
+      setIps((prev) => prev.map((item) => (item.id === updatedIp.id ? updatedIp : item)));
+
+      // Update selected IP if it was the trusted one
+      setSelectedIp((prev) => (prev && prev.id === updatedIp.id ? updatedIp : prev));
+
+      // Refresh subnet summary metrics in background
+      if (selectedSubnet?.id) {
+        await loadSubnets(selectedSubnet.id);
+      }
+
+      setScanNotification({
+        type: 'success',
+        message: `MAC address untuk IP ${updatedIp.ip_address} berhasil disetujui (Status: Assigned).`,
+      });
+    } catch (err) {
+      console.error('Failed to trust MAC:', err);
+      setScanNotification({
+        type: 'error',
+        message: `Gagal menyetujui MAC: ${err.message || 'Terjadi kesalahan sistem.'}`,
+      });
+    } finally {
+      setIsTrustingId(null);
+    }
+  };
+
+  const handleIpSaved = async (updatedIp) => {
+    // Update local ips list
+    setIps((prev) => prev.map((item) => (item.id === updatedIp.id ? updatedIp : item)));
+
+    // Update selected IP if it was the edited one
+    setSelectedIp((prev) => (prev && prev.id === updatedIp.id ? updatedIp : prev));
+
+    // Refresh subnet summary metrics in background
+    if (selectedSubnet?.id) {
+      await loadSubnets(selectedSubnet.id);
+    }
+
+    setScanNotification({
+      type: 'success',
+      message: `Konfigurasi host IP ${updatedIp.ip_address} berhasil disimpan.`,
+    });
   };
 
   return (
@@ -286,7 +346,18 @@ export default function App() {
               ips={ips}
               selectedIp={selectedIp}
               onSelectIp={setSelectedIp}
+              onEditIp={handleOpenEdit}
               isLoading={isIpsLoading}
+            />
+
+            {/* Detailed IP Inventory Table */}
+            <IpTable
+              ips={ips}
+              selectedIp={selectedIp}
+              onSelectIp={setSelectedIp}
+              onEditIp={handleOpenEdit}
+              onTrustMac={handleTrustMac}
+              isTrustingId={isTrustingId}
             />
           </div>
         ) : null}
@@ -297,6 +368,17 @@ export default function App() {
         isOpen={isAddSubnetModalOpen}
         onClose={() => setIsAddSubnetModalOpen(false)}
         onCreated={handleSubnetCreated}
+      />
+
+      {/* Edit IP Host Details Modal */}
+      <EditIpModal
+        isOpen={isEditModalOpen}
+        ip={editingIp}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingIp(null);
+        }}
+        onSaved={handleIpSaved}
       />
     </div>
   );

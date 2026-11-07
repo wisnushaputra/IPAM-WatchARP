@@ -9,6 +9,7 @@ import {
   Radio,
   Server,
   Layers,
+  Edit2,
 } from 'lucide-react';
 
 const STATUS_LABELS = {
@@ -74,7 +75,13 @@ function getCellClasses(status, isSelected) {
  * @param {Object} [props.selectedIp] - Currently selected IP object
  * @param {boolean} [props.isLoading=false] - Loading indicator state
  */
-export default function IpGridMap({ ips = [], onSelectIp, selectedIp = null, isLoading = false }) {
+export default function IpGridMap({
+  ips = [],
+  onSelectIp,
+  selectedIp = null,
+  isLoading = false,
+  onEditIp,
+}) {
   // Normalize exactly 254 cells (host IPs .1 through .254)
   const cells = useMemo(() => {
     const byOctet = new Map();
@@ -240,6 +247,17 @@ export default function IpGridMap({ ips = [], onSelectIp, selectedIp = null, isL
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-center">
+            {onEditIp && (
+              <button
+                type="button"
+                onClick={() => onEditIp(selectedIp)}
+                className="px-3 py-1.5 min-h-[32px] bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 shadow-sm"
+                title="Edit konfigurasi host IP ini"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit Host</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onSelectIp && onSelectIp(null)}

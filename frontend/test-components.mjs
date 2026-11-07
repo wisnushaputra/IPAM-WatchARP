@@ -18,9 +18,11 @@ async function runComponentTests() {
     const { default: AddSubnetModal } = await server.ssrLoadModule('./src/components/AddSubnetModal.jsx');
     const { default: StatCards } = await server.ssrLoadModule('./src/components/StatCards.jsx');
     const { default: IpGridMap } = await server.ssrLoadModule('./src/components/IpGridMap.jsx');
+    const { default: IpTable } = await server.ssrLoadModule('./src/components/IpTable.jsx');
+    const { default: EditIpModal, isValidMac } = await server.ssrLoadModule('./src/components/EditIpModal.jsx');
     const { default: App } = await server.ssrLoadModule('./src/App.jsx');
 
-    console.log('✓ Successfully loaded Header, AddSubnetModal, StatCards, IpGridMap, and App via Vite SSR');
+    console.log('✓ Successfully loaded Header, AddSubnetModal, StatCards, IpGridMap, IpTable, EditIpModal, and App via Vite SSR');
 
     // 2. Test Header without subnets
     {
@@ -280,7 +282,182 @@ async function runComponentTests() {
       console.log('✓ IpGridMap renders 254 cells, accurate status color classes, tooltips, legend, and selected IP inspector');
     }
 
-    // 10. Test App root component
+    // 10. Test EditIpModal component and MAC validation
+    {
+      // Test isValidMac helper
+      assert.strictEqual(isValidMac(''), true, 'Empty MAC is allowed');
+      assert.strictEqual(isValidMac(null), true, 'Null MAC is allowed');
+      assert.strictEqual(isValidMac('AA:BB:CC:DD:EE:FF'), true, 'Valid colon MAC');
+      assert.strictEqual(isValidMac('aa:bb:cc:dd:ee:ff'), true, 'Valid lowercase colon MAC');
+      assert.strictEqual(isValidMac('00-11-22-33-44-55'), true, 'Valid hyphen MAC');
+      assert.strictEqual(isValidMac('invalid-mac'), false, 'Invalid string should fail');
+      assert.strictEqual(isValidMac('AA:BB:CC:DD:EE'), false, 'Too short MAC should fail');
+      assert.strictEqual(isValidMac('AA:BB:CC:DD:EE:FF:00'), false, 'Too long MAC should fail');
+      assert.strictEqual(isValidMac('GG:HH:II:JJ:KK:LL'), false, 'Non-hex chars should fail');
+      console.log('✓ EditIpModal isValidMac validation unit tests passed');
+
+      // Test EditIpModal closed
+      const htmlClosed = renderToString(
+        React.createElement(EditIpModal, {
+          isOpen: false,
+          ip: null,
+          onClose: () => {},
+          onSaved: () => {},
+        })
+      );
+      assert.strictEqual(htmlClosed, '', 'EditIpModal returns null when closed');
+
+      // Test EditIpModal open
+      const sampleIp = {
+        id: 15,
+        ip_address: '192.168.1.15',
+        admin_status: 'available',
+        hostname: 'test-host',
+        expected_mac: 'AA:BB:CC:11:22:33',
+        detected_mac: 'DE:AD:BE:EF:CA:FE',
+        vendor: 'Espressif',
+        reconciliation_status: 'ROGUE_DEVICE',
+        is_online: true,
+      };
+
+      const htmlOpen = renderToString(
+        React.createElement(EditIpModal, {
+          isOpen: true,
+          ip: sampleIp,
+          onClose: () => {},
+          onSaved: () => {},
+        })
+      );
+
+      assert(htmlOpen.includes('role="dialog"'), 'EditIpModal must have role="dialog"');
+      assert(htmlOpen.includes('Edit IP:'), 'EditIpModal displays Edit IP title');
+      assert(htmlOpen.includes('192.168.1.15'), 'EditIpModal displays target IP address in title');
+      assert(htmlOpen.includes('Status Admin'), 'EditIpModal contains Status Admin field');
+      assert(htmlOpen.includes('Hostname (Nama Perangkat)'), 'EditIpModal contains Hostname label');
+      assert(htmlOpen.includes('Expected MAC Address'), 'EditIpModal contains Expected MAC label');
+      assert(htmlOpen.includes('Gunakan Detected MAC'), 'EditIpModal provides quick copy detected MAC helper');
+      assert(htmlOpen.includes('Simpan Perubahan'), 'EditIpModal provides Simpan Perubahan submit button');
+      assert(htmlOpen.includes('Batal'), 'EditIpModal provides Batal button');
+      console.log('✓ EditIpModal renders accessible dialog, form controls, and detected MAC helper');
+    }
+
+    // 11. Test IpTable component
+    {
+      const mockTableIps = [
+        {
+          id: 1,
+          ip_address: '192.168.1.1',
+          admin_status: 'reserved',
+          hostname: 'gateway.local',
+          expected_mac: '00:11:22:33:44:01',
+          detected_mac: '00:11:22:33:44:01',
+          vendor: 'Cisco Systems',
+          is_online: true,
+          reconciliation_status: 'RESERVED',
+          last_seen_at: '2026-11-07T12:00:00Z',
+        },
+        {
+          id: 2,
+          ip_address: '192.168.1.20',
+          admin_status: 'assigned',
+          hostname: 'nas-storage',
+          expected_mac: 'AA:BB:CC:DD:EE:20',
+          detected_mac: 'AA:BB:CC:DD:EE:20',
+          vendor: 'Synology',
+          is_online: true,
+          reconciliation_status: 'VALID_ONLINE',
+          last_seen_at: '2026-11-07T12:05:00Z',
+        },
+        {
+          id: 3,
+          ip_address: '192.168.1.50',
+          admin_status: 'available',
+          hostname: null,
+          expected_mac: null,
+          detected_mac: '77:88:99:AA:BB:CC',
+          vendor: 'Raspberry Pi Foundation',
+          is_online: true,
+          reconciliation_status: 'ROGUE_DEVICE',
+          last_seen_at: '2026-11-07T12:10:00Z',
+        },
+        {
+          id: 4,
+          ip_address: '192.168.1.60',
+          admin_status: 'assigned',
+          hostname: 'printer-office',
+          expected_mac: '11:22:33:44:55:66',
+          detected_mac: '99:88:77:66:55:44',
+          vendor: 'HP Inc',
+          is_online: true,
+          reconciliation_status: 'MAC_MISMATCH',
+          last_seen_at: '2026-11-07T12:10:00Z',
+        },
+        {
+          id: 5,
+          ip_address: '192.168.1.100',
+          admin_status: 'available',
+          hostname: null,
+          expected_mac: null,
+          detected_mac: null,
+          vendor: null,
+          is_online: false,
+          reconciliation_status: 'FREE',
+          last_seen_at: null,
+        },
+      ];
+
+      const htmlTable = renderToString(
+        React.createElement(IpTable, {
+          ips: mockTableIps,
+          selectedIp: mockTableIps[2], // rogue device selected
+          onSelectIp: () => {},
+          onEditIp: () => {},
+          onTrustMac: () => {},
+          isTrustingId: null,
+        })
+      );
+
+      // Verify Headers
+      assert(htmlTable.includes('Daftar Rincian IP Host'), 'IpTable contains main heading');
+      assert(htmlTable.includes('IP Address'), 'IpTable has IP Address th');
+      assert(htmlTable.includes('Status Admin'), 'IpTable has Status Admin th');
+      assert(htmlTable.includes('Hostname'), 'IpTable has Hostname th');
+      assert(htmlTable.includes('Expected MAC'), 'IpTable has Expected MAC th');
+      assert(htmlTable.includes('Detected MAC (Vendor)'), 'IpTable has Detected MAC th');
+      assert(htmlTable.includes('Status Rekonsiliasi'), 'IpTable has Status Rekonsiliasi th');
+      assert(htmlTable.includes('Terakhir Terlihat'), 'IpTable has Terakhir Terlihat th');
+      assert(htmlTable.includes('Aksi'), 'IpTable has Aksi th');
+
+      // Verify Filter Tabs
+      assert(htmlTable.includes('Rogue Devices'), 'IpTable includes Rogue Devices tab');
+      assert(htmlTable.includes('Mismatches'), 'IpTable includes Mismatches tab');
+      assert(htmlTable.includes('Online'), 'IpTable includes Online tab');
+      assert(htmlTable.includes('Assigned'), 'IpTable includes Assigned tab');
+
+      // Verify Rogue Device Approve Button
+      assert(htmlTable.includes('Approve / Trust MAC'), 'IpTable renders Approve / Trust MAC button for rogue device');
+
+      // Verify Edit Button
+      assert(htmlTable.includes('Edit'), 'IpTable renders Edit button');
+
+      // Verify Rows content
+      assert(htmlTable.includes('192.168.1.1'), 'IpTable renders 192.168.1.1');
+      assert(htmlTable.includes('gateway.local'), 'IpTable renders hostname');
+      assert(htmlTable.includes('Raspberry Pi Foundation'), 'IpTable renders vendor info');
+      assert(htmlTable.includes('Rogue Device') || htmlTable.includes('ROGUE DEVICE'), 'IpTable renders Rogue Device badge');
+      assert(htmlTable.includes('MAC Mismatch') || htmlTable.includes('MAC MISMATCH'), 'IpTable renders MAC Mismatch badge');
+
+      // Verify Search input
+      assert(htmlTable.includes('Cari IP, Hostname, MAC, Vendor...'), 'IpTable renders search bar with placeholder');
+
+      // Verify Pagination info
+      assert(htmlTable.includes('Menampilkan'), 'IpTable renders pagination display');
+      assert(htmlTable.includes('dari'), 'IpTable renders pagination total info');
+
+      console.log('✓ IpTable renders full columns, tabs, search, pagination, and rogue approval action button');
+    }
+
+    // 12. Test App root component
     {
       globalThis.fetch = async () => ({
         ok: true,
