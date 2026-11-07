@@ -1,5 +1,6 @@
+import ipaddress
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import IpAddress, Subnet
@@ -14,6 +15,7 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
     # 1. Validate CIDR
     try:
         validate_v4_subnet_24(payload.cidr)
+        canonical_cidr = str(ipaddress.IPv4Network(payload.cidr.strip(), strict=False))
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -21,16 +23,16 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
         )
 
     # 2. Check duplicate CIDR
-    existing = db.query(Subnet).filter(Subnet.cidr == payload.cidr.strip()).first()
+    existing = db.query(Subnet).filter(Subnet.cidr == canonical_cidr).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Subnet with CIDR '{payload.cidr}' already exists",
+            detail=f"Subnet with CIDR '{canonical_cidr}' already exists",
         )
 
     # 3. Validate gateway and generate 254 host IP definitions
     try:
-        host_defs = generate_host_ips(payload.cidr, payload.gateway)
+        host_defs = generate_host_ips(canonical_cidr, payload.gateway)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -39,9 +41,9 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
 
     # 4. Create Subnet entity
     subnet = Subnet(
-        name=payload.name,
-        cidr=payload.cidr.strip(),
-        gateway=payload.gateway.strip() if payload.gateway else None,
+        name=payload.name.strip(),
+        cidr=canonical_cidr,
+        gateway=payload.gateway.strip() if payload.gateway and payload.gateway.strip() else None,
         vlan_id=payload.vlan_id,
     )
     db.add(subnet)
@@ -82,7 +84,12 @@ def create_subnet(payload: SubnetCreate, db: Session = Depends(get_db)):
 
 @router.get("", response_model=list[SubnetSummary])
 def list_subnets(db: Session = Depends(get_db)):
-    subnets = db.query(Subnet).order_by(Subnet.created_at.desc()).all()
+    subnets = (
+        db.query(Subnet)
+        .options(selectinload(Subnet.ip_addresses))
+        .order_by(Subnet.created_at.desc())
+        .all()
+    )
     summaries = []
     for s in subnets:
         ips = s.ip_addresses
