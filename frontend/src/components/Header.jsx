@@ -1,5 +1,5 @@
 import React from 'react';
-import { Network, Plus, RefreshCw, Radio } from 'lucide-react';
+import { Network, Plus, RefreshCw, Radio, Trash2 } from 'lucide-react';
 
 /**
  * Top application header containing branding, subnet selector dropdown,
@@ -10,6 +10,7 @@ import { Network, Plus, RefreshCw, Radio } from 'lucide-react';
  * - selectedSubnet: object | null
  * - onSelectSubnet: (subnet: object) => void
  * - onOpenAddSubnet: () => void
+ * - onDeleteSubnet: (subnetId: number) => void
  * - onScan: () => void
  * - isScanning: boolean
  */
@@ -18,6 +19,7 @@ export default function Header({
   selectedSubnet = null,
   onSelectSubnet,
   onOpenAddSubnet,
+  onDeleteSubnet,
   onScan,
   isScanning = false,
 }) {
@@ -80,6 +82,22 @@ export default function Header({
                 ))
               )}
             </select>
+            {selectedSubnet && onDeleteSubnet && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`Hapus subnet "${selectedSubnet.name}" (${selectedSubnet.cidr}) beserta seluruh datanya?`)) {
+                    onDeleteSubnet(selectedSubnet.id);
+                  }
+                }}
+                disabled={isScanning}
+                title={`Hapus subnet ${selectedSubnet.name}`}
+                className="ml-2 p-2.5 min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-700/80 hover:border-rose-500/30 transition-colors flex items-center justify-center focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={`Hapus subnet ${selectedSubnet.name}`}
+              >
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
+              </button>
+            )}
           </div>
 
           {/* + Tambah Subnet Button */}

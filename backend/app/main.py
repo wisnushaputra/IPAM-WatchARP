@@ -1,3 +1,5 @@
+import json
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,10 +22,18 @@ app = FastAPI(
 )
 
 # CORS configuration
-origins = [
+default_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+cors_env = os.getenv("CORS_ORIGINS")
+if cors_env:
+    try:
+        origins = json.loads(cors_env) if cors_env.strip().startswith("[") else [o.strip() for o in cors_env.split(",") if o.strip()]
+    except Exception:
+        origins = default_origins
+else:
+    origins = default_origins
 
 app.add_middleware(
     CORSMiddleware,

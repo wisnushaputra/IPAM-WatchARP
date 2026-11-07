@@ -105,13 +105,33 @@ export default function App() {
   };
 
   const handleSubnetCreated = (newSubnet) => {
-    setSubnets((prev) => [...prev, newSubnet]);
+    setSubnets((prev) => [newSubnet, ...prev]);
     setSelectedSubnet(newSubnet);
     setSelectedIp(null);
     setScanNotification({
       type: 'success',
       message: `Subnet "${newSubnet.name}" (${newSubnet.cidr}) berhasil dibuat.`,
     });
+  };
+
+  const handleDeleteSubnet = async (subnetId) => {
+    if (!subnetId) return;
+    try {
+      await api.deleteSubnet(subnetId);
+      setSubnets((prev) => prev.filter((s) => s.id !== subnetId));
+      if (selectedSubnet?.id === subnetId) {
+        const remaining = subnets.filter((s) => s.id !== subnetId);
+        setSelectedSubnet(remaining.length > 0 ? remaining[0] : null);
+        setSelectedIp(null);
+      }
+      setScanNotification({
+        type: 'success',
+        message: 'Subnet berhasil dihapus.',
+      });
+    } catch (err) {
+      console.error('Failed to delete subnet:', err);
+      setError(`Gagal menghapus subnet: ${err.message}`);
+    }
   };
 
   const handleScan = async () => {
@@ -208,6 +228,7 @@ export default function App() {
         selectedSubnet={selectedSubnet}
         onSelectSubnet={handleSelectSubnet}
         onOpenAddSubnet={() => setIsAddSubnetModalOpen(true)}
+        onDeleteSubnet={handleDeleteSubnet}
         onScan={handleScan}
         isScanning={isScanning}
       />
